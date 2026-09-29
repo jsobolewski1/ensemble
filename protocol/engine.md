@@ -1,0 +1,295 @@
+# engine - the machinery every ensemble process runs on
+
+A **process skill** takes one unit of work through fixed stages, with AI sessions in roles that review each other's work. `converge` (a feature) and `converge-bug` (a bug) are process skills. This file is what they share: state, turns, replies, rulings, review, and commits. A process skill defines only what differs, the hooks listed at the end, and says so in its own words.
+
+Every role and the Arbiter read this file together with their process skill. Where the two conflict, the process skill wins, and it says so in place.
+
+Why a shared engine: when one skill borrowed the other's machinery by reference, every change to the first silently changed the second, and the list of what "does not apply" went stale.
+
+## Glossary
+Every term below is used in this meaning only. A process skill adds its own terms.
+
+* **Spec** - one unit of work, whatever the process: a feature, a bug. Its folder is `ensemble/<kind>/<spec>/` at the project root, where the process skill names `<kind>`, e.g. `specs` or `bugs`.
+* **Stage** - a named part of the process. The process skill lists its stages. `done` and `abandoned` end every process.
+* **Step** - whose turn it is inside a reviewed stage: `Draft` (the author produces the work), `Review` (the reviewer writes findings), `Answer` (the author answers them).
+* **Role** - User (human), Arbiter, and the roles the process skill defines.
+* **Author** - the role whose work is under review. **Reviewer** - the role that reviews it. The process skill names both for each topic.
+* **Turn** - one piece of work by one role, started by `Your turn.` and ended by a reply.
+* **Topic** - one thing under review, and its folder `review/<topic>/`.
+* **Round** - one review and the answer to it.
+* **Subject** - the exact thing a round reviews: a file, a list of files, or a commit range.
+* **Finding** - one numbered problem in a review, cited as `<file>#<id>`, e.g. `01-review.md#3`.
+* **Thread** - a finding and every later re-assertion of it, named by the `<file>#<id>` that first raised it.
+* **Verdict** - the fixed last line of every review and answer. It decides the next state.
+* **Ruling** - a User decision recorded in `99-user.md`. Binding on every role and never re-argued.
+* **FACT** - a claim with its source stated. **RESULT** - a claim with the command that was run and its output.
+
+## The spec folder
+```
+ensemble/<kind>/
+  <spec>/
+    current-state.txt
+    roster.md
+    99-user.md
+    stats.md
+    review/
+      <topic>/   00-request.md, 01-review.md, 02-answer.md, ...
+    ...          what the process skill adds
+  archive/
+    <spec>/
+```
+`ensemble/<kind>/archive/` is history, never current truth.
+
+## Starting a spec
+The User opens a session, loads a process skill and asks it to start a spec. That session is the Arbiter. In this order, it:
+1. reads `integrations/agents/contract.md` at the plugin root. If the User's agents were never set up, it runs the first-run setup that file describes.
+2. fixes the roster with the User: agent, model, effort and skills for each role. The Arbiter's own line records the model and effort it runs on. A session cannot see its own effort, so the Arbiter asks the User rather than guessing.
+3. creates the spec folder with the process skill's layout, writes `roster.md`, and writes the process skill's first state into `current-state.txt`. `99-user.md` and `stats.md` are appended to, and are created on their first line.
+
+The User starts only the Arbiter. The Arbiter spawns every other role.
+
+## State
+
+### current-state.txt
+Owned by the Arbiter. One line:
+```
+<stage>[:<qualifier>][:<Step>]
+```
+The process skill says which stages carry a qualifier (e.g. a phase number) and which carry a Step. The Arbiter rewrites the line after every reply, **before** sending the next `Your turn.`. That is what makes a two-word message enough.
+
+### Transitions
+The Arbiter picks the next state from the reply line alone and never opens the artifact. These rows hold in every process. The process skill adds its own, above all the row that says where a topic goes when it closes.
+
+| state | reply | next state |
+|---|---|---|
+| `<x>:Draft` | DONE, `request opened` | `<x>:Review` |
+| `<x>:Review` | DONE, `changes-requested` or `approved-with-fixes` | `<x>:Answer` |
+| `<x>:Answer` | DONE, `next-round` | `<x>:Review` |
+| `<x>:Review` / `<x>:Answer` | DONE, `approved` / `closed` | as the process skill says for that topic |
+| any | User rules to abandon the spec | `abandoned` (see Closing a spec) |
+| any | CONFLICT or BLOCKED | unchanged (see On every reply) |
+
+`<x>` is the state without its Step, e.g. `plan` or `implementation:03`.
+
+## Artifacts every spec has
+
+### roster.md
+The process skill, then the agent, model and effort of each role, the skills of each role, and the handle of each spawned role.
+```
+Skill: ensemble:converge
+Arbiter: opus, high
+Architect: fable, high | agent a3c99aa3cf5f0bd4a
+Architecture Reviewer: codex gpt-5.6-sol, xhigh | session 01a0bf4c-f5ae-7851-81d7-13355d6fae9a
+Coder: opus, high
+
+Skills:
+  all: <skill>, <skill>
+  Coder, Code Reviewer: <skill>
+```
+For a Claude role the model is the spawn call's name: `sonnet`, `opus`, `haiku` or `fable`. A role on another agent is written `<agent> <model>`, where `<agent>` names its adapter in `~/.config/ensemble/integrations/agents/`. Effort is one of `low`, `medium`, `high`, `xhigh`, `max`. The `Skill:` line tells a new Arbiter session, or a role, which process the spec runs.
+
+The Arbiter adds the handle when it spawns a role, `| agent <id>` for Claude and `| session <handle>` for an adapter, and replaces it when it spawns a new session for the role. The handle is how it sends the role later turns and finds its figures for `stats.md`.
+
+### 99-user.md
+Every ruling, at any stage, in the User's own words. Appended and never rewritten. It sits at the spec root so that every role can read it.
+```
+## <YYYY-MM-DD> <state>[ | settles <file>#<id>]
+Asked: <the question put to the User>
+Ruling: <the User's words>
+```
+
+### stats.md
+Owned by the Arbiter, one line per finished turn, never read by another role.
+```
+<YYYY-MM-DD> <role> <model>/<effort> | <the reply line, verbatim> | <in>/<out>/<cc>cc/<cr>cr <min>m
+```
+For a Claude role, the last field is the output of `turn-stats.py` next to this file, run from the project directory with the role's agent id (`--all` prints every turn). The transcript it reads is at `~/.claude/projects/<project>/<arbiter-session-id>/subagents/agent-<agent-id>.jsonl`, where `<project>` is the working directory with `/` replaced by `-`, e.g. `/home/x/project` -> `-home-x-project`. Run it after the task-notification that the agent finished, not on its reply: the reply lands before the transcript's last usage lines, and figures taken then are short.
+
+For a role on another agent, the last field is the output of its adapter's Stats, or `-` if the adapter has none. It is not comparable with a Claude row.
+
+Never take token numbers from the role itself: a session cannot count its own tokens.
+
+## Research
+Every research entry, in whatever file the process skill names, is either a FACT with its source stated, or a RESULT with the command run and its output. Never a guess.
+
+A claim about **a mechanism the spec does not control** must be a RESULT, e.g. how a build plugin matches a version pattern, or what a test runner does when a filter matches nothing. Documentation and a plausible reading of the source are not sources: run it and record the output. The rule covers the mechanisms a decision rests on, not every detail of the code, which the author of the code will find. Why: a gate built on a misunderstood mechanism is a check that cannot fail, and everything built on it is unverified.
+
+Once a FACT is recorded, no other role researches the same question again. A RESULT may be re-run if it is non-deterministic or expected to have changed.
+
+## Code turns
+A role that writes code commits it during its turns and never stages `ensemble/`. It runs the full build with tests at the end of **every** turn that changed code, Draft and Answer alike. A turn is not DONE until the build is green with all tests passing. An answer that only challenges or declines changes no code and reports the last green build.
+
+That run is the only build of the topic: the request and every answer report it, and it is trusted as reported. A gate that the build does not run, such as a live check, is run on the same turns and reported the same way.
+
+The reviewer of code never reruns the build or the test suite. They may run one targeted command as the anchor of a finding, e.g. a mutation that shows a test cannot fail. That is evidence for a finding, not a re-check of the build. The process skill may allow a different set of commands.
+
+## Review
+
+### review/<topic>/
+One folder per topic. Every round of that topic lands there. The files share **one** number sequence in the order they were written: `00-request.md`, `01-review.md`, `02-answer.md`, `03-review.md`, ... A number is never reused. The newest file is what the next turn answers.
+
+### review/<topic>/00-request.md
+Written by the author to open the first round. Later rounds have no request: the answer that asks for another round names the new subject.
+```
+Subject: <file> | <file>, <file> | git diff <from>..<to>
+Build: <command> - green, <n> tests passed        (code topics)
+Gates: <command> - <result>                       (code topics, each gate the build does not run)
+<the process skill's own fields>
+
+<what changed and anything the reviewer must know that no artifact says>
+```
+
+### review/<topic>/NN-review.md
+Findings and the verdict. Nothing else: no list of what was checked and found fine, no summary. Those are not findings, and every later reader pays for them.
+```
+## #1 <one-sentence title>
+Severity: Blocker | Nit
+<description, with its anchor>
+Proposed solution: <what to change>
+
+## #2 <one-sentence title> (re 01-review.md#3)
+...
+
+Verdict: changes-requested
+```
+A finding that re-asserts one from an earlier review of the topic carries `(re <file>#<id>)`, naming the review that first raised it. That origin is the finding's **thread** (see Escalation). A finding without it is new.
+
+The verdict line is one of:
+* `Verdict: approved <subject>` - no Blockers. Nits are not applied and no answer follows. A reviewer who wants a Nit applied lists it under `approved-with-fixes`.
+* `Verdict: approved-with-fixes <subject> | #2, #4` - see Approval with fixes.
+* `Verdict: changes-requested` - at least one Blocker the reviewer cannot approve unseen.
+
+A process skill may add an outcome to a closing verdict, e.g. `Verdict: approved <subject> | exit`.
+
+### review/<topic>/NN-answer.md
+The author answers every finding by its id, one line each where possible. Prose only for a challenge, or for a fix that departs from the proposal, and only as much as the reviewer needs to judge it.
+```
+#1 accepted, fixed in <file or commit>
+#2 accepted, fixed differently in <file or commit>: <why>
+#3 challenged: <position, with its anchor>
+#4 declined (Nit)
+#5 deadlocked: <position, with its anchor>
+
+Build: <command> - green, <n> tests passed        (code topics)
+Gates: <command> - <result>                       (code topics, each gate the build does not run)
+Verdict: next-round <subject>
+```
+The verdict line is one of:
+* `Verdict: next-round <subject>` - the reviewer has something new to judge. The subject is the new file, the files touched, or the commit range carrying the fixes, i.e. `git diff <from>..<to>`. Why: without it the reviewer re-reviews work already approved.
+* `Verdict: closed <subject>` - only after `approved-with-fixes` when every listed fix was applied as proposed. The subject is the final file, the files, or the topic's full commit range.
+* `Verdict: deadlocked <thread>` - see Escalation.
+
+### Findings
+Every finding has an id (its number in the file), a title, a severity, a description and a proposed solution.
+* **Blocker** - must be fixed or challenged. **Nit** - may be fixed or declined, and never blocks approval. What counts as a Blocker for each topic is the process skill's to say. Anything else is a Nit.
+* **The description must carry an anchor**: `file:line` for a claim about code, the command and its output for a claim about behaviour, or the line of the spec it contradicts for a claim that something is wrong or missing. A finding with no anchor costs the author a round to prove or disprove, so it is not a finding.
+* **A finding that says a third-party mechanism does not exist must show it failing**, with the command and its output. An empty search (an API listing, a grep, a `javap`) shows only that it was not where you looked. Absence of a config key is not absence of a capability: a sentinel value, another entry point or a newer version all look the same to an empty search. Why: the author usually accepts such a finding and designs the capability out. This is the reviewer's half of the RESULT rule, and it binds hardest on a reviewer who cannot see the research.
+
+### Approval with fixes
+When every Blocker has a concrete, local proposed solution and none changes the design, the reviewer approves with fixes, listing the finding ids the approval depends on. The author applies each listed fix exactly as proposed and answers `closed`. No further round follows: re-reviewing a fix applied verbatim only confirms what both sides already agreed.
+
+The approval is void as soon as the author challenges a listed finding or fixes it differently. The answer is then `next-round`. A reviewer who cannot state a fix precisely enough to approve it unseen answers `changes-requested`.
+
+### Escalation
+A deadlock is when the author challenged a finding, the reviewer re-asserted it with `(re <origin>)`, and the author still disagrees. The author then writes their position once more as `#<id> deadlocked: ...`, answers every other finding, ends with `Verdict: deadlocked <origin>` and replies CONFLICT. Neither side writes on that finding again.
+
+The Arbiter sends the User exactly this, and the User reads the files:
+```
+CONFLICT on <thread> in review/<topic>/: positions in <files from the reply>. Your ruling?
+```
+The Arbiter neither summarises, quotes nor rules. After the ruling, the author gets the next turn in the same Answer state and writes a new answer applying the ruling, with a normal verdict.
+
+A **new** finding on new evidence is never a deadlock, however late it arrives.
+
+## Roles every process has
+* **User** - owns the spec. Writes what the process starts from, picks the roster, rules on escalations and blockers.
+* **Arbiter** - runs the process: spawns roles, sends turns, keeps `current-state.txt`, `stats.md` and `99-user.md`, commits the spec, and goes to the User for a CONFLICT, a BLOCKED or a User decision. It never reads, analyses or judges what a role produced: the reply line is all it needs. It never rules on the merits, and it never builds or tests. A finished turn is not news to the User, because the artifacts already say what happened. The User may hold this role, but an AI is preferred. One session for the whole spec.
+
+## Communication
+Sessions share nothing but the artifacts on disk. A message says **whose turn it is** and nothing more.
+
+**Never put spec content in a message**: no summaries, findings, file contents or restated decisions. A role that needs to tell another role something writes it in its artifact. Why: content in a message duplicates an artifact, is paid for on every hop, and lets a role act on something never written down.
+
+A role exchanges messages with the Arbiter only, never with another role, and never spawns a subagent of its own. A command it is not permitted to run is a BLOCKED, not something to route around.
+
+### Starting a role
+The Arbiter spawns each role right before its first turn, and again whenever the process skill calls for a fresh session.
+
+**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: ensemble:converge-<effort>` and `model: <model>`, both from the role's `roster.md` line. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
+
+The spawn call has no effort parameter: effort comes only from the agent definition. So the five agent types `ensemble:converge-{low,medium,high,xhigh,max}` must exist before the Arbiter session starts, because agent types load at session start. The ensemble plugin ships them, for every process skill. Each definition sets only `effort`, and the model passed on the spawn call overrides the definition's. If a type is missing, the Arbiter stops and tells the User. It never spawns at a different effort.
+
+The spawn prompt is the role's first turn:
+```
+Load the ensemble:<process skill> skill. Your role is <role>. Spec: <path to spec folder>. Your turn.
+```
+The role loads the process skill, this file, and the skills `roster.md` gives it, then takes the turn like any other.
+
+**On another agent**, the role is started and sent its turns through its adapter's Start and Turn, as `integrations/agents/contract.md` says. Its prompt names each skill by path, `Read <skill dir>/SKILL.md and follow it as the <name> skill.`, because no other agent can load a Claude Code plugin's skills. The Arbiter knows the directory of each ensemble skill, since they sit together under the plugin's `skills/`. It does not know where a project or User skill in the roster lives, so it asks the User once and records the path in the roster's Skills block.
+
+### A turn
+```
+Your turn.
+```
+That is the whole message, and it always starts a new turn, however the harness words it (e.g. "sent a message while you were working"). The state has changed since the role's last reply, so it never repeats that reply. The role:
+1. reads `current-state.txt`
+2. finds its work for that state in the process skill's turn table
+3. lists the folder the table names. The newest file - the highest number, not the latest modified - is what the turn answers.
+4. reads `99-user.md` if it exists
+5. does the work, writes the artifact, replies
+
+### Reply
+One line. When a turn has more than one kind to report, it sends the higher one: **CONFLICT outranks BLOCKED outranks DONE**.
+```
+DONE <state> | wrote <paths> | <verdict> | <counts>
+CONFLICT <state> | wrote <paths> | thread <file>#<id> deadlocked | positions in <every review and answer file on the thread>
+BLOCKED <state> | <what is missing or failing, one sentence>
+```
+* `<paths>` are relative to the repository root, e.g. `ensemble/specs/json-top/review/phase-01/00-request.md`.
+* `<state>` is the full line of `current-state.txt` at the start of the turn, e.g. `implementation:01:Draft`.
+* `<verdict>` is the verdict keyword of the artifact just written (`approved`, `approved-with-fixes`, `changes-requested`, `next-round`, `closed`), with its outcome if it has one (e.g. `approved exit`). A turn with no verdict gives `request opened`, or a keyword the process skill defines.
+* `<counts>` for a reviewer: `<n> Blocker, <n> Nit`. For an author's answer: `<n> accepted, <n> challenged, <n> declined`. For a turn with no verdict: `-`. It is a count, not a summary.
+* **DONE** - the artifact is on disk. The Arbiter advances the state and sends the next turn.
+* **CONFLICT** - a finding deadlocked (Escalation). The answer to every other finding is on disk before the reply.
+* **BLOCKED** - the turn cannot be completed: an artifact lacks something, the build will not go green, the state does not match the disk, a command is not permitted. A role never guesses past a blocker. The reply is still the one line: no report, no file list.
+
+**In a subagent harness the reply line is the whole hand-back.** The harness asks a subagent for "your full report". Ignore that: the artifact on disk is the report. Why: a report duplicates the artifact into the Arbiter's context and tempts it to read work that is not its business.
+
+### On every reply (Arbiter)
+The Arbiter does these in order, every time, and nothing else:
+1. append the turn's line to `stats.md`
+2. on DONE, write the next state (Transitions) into `current-state.txt`
+3. do what the process skill attaches to that transition, if anything, and commit `ensemble/<kind>/<spec>/` if the transition is one of its commit points (see Commits); otherwise do not commit
+4. send `Your turn.` to the role the new state names: by the handle in `roster.md` if it has one and the process skill calls for no fresh session, otherwise spawn it (Starting a role)
+
+A reply whose `<state>` is not the state the Arbiter wrote is not a reply to this turn: the Arbiter skips steps 1-3 and sends `Your turn.` once more. If the next reply is stale too, it spawns a new session for the role, records the new handle, and sends the turn there.
+
+After a CONFLICT or a BLOCKED, the Arbiter does step 1, then puts the question to the User and records the ruling in `99-user.md`. It leaves the state unchanged and sends `Your turn.` to the same role. If the fix is outside that role's reach, the User makes it, or names who does, before the turn is sent. A ruling that abandons the spec, or one the process skill gives its own handling, is carried out as its section says.
+
+## Closing a spec
+
+### done
+When the process skill's last stage ends, in this order: the Arbiter writes `done` into `current-state.txt`, moves `ensemble/<kind>/<spec>/` to `ensemble/<kind>/archive/<spec>/`, then commits. The archived state must read `done`.
+
+### abandoned
+The end of a spec that will not deliver its goal. The User may abandon a spec in any state. The Arbiter records the ruling in `99-user.md` like any other, and it holds what the archive must say: why the spec stops, and what happens to the work it landed.
+
+Landed work is kept, or reverted outside the spec by the User or by someone the User names. A revert is not reviewed: nobody will build on it. The Arbiter waits until the User says the revert is done. Then, in the order of `done`, it writes `abandoned` into `current-state.txt`, moves the spec to `ensemble/<kind>/archive/<spec>/` and commits. The archived state must read `abandoned`. Why a state of its own: an archived spec that reads `done` tells every later reader that its goal was delivered.
+
+## Commits
+* **A role that writes code** commits it during its turns and never stages `ensemble/`.
+* **Arbiter** commits `ensemble/<kind>/<spec>/` at the commit points the process skill names, and once more at `done` or `abandoned`, after the move to the archive.
+
+A project may keep its specs out of git. If `git check-ignore -q ensemble/<kind>/<spec>/` succeeds, the Arbiter makes none of the spec commits. The check is on the spec folder, because a project may ignore one kind, e.g. `ensemble/bugs/`, and still commit the rest of `ensemble/`. Code commits are unchanged either way. No part of the process may depend on a spec commit.
+
+## Hooks: what a process skill defines
+* its **kind**: the folder under `ensemble/` its specs live in
+* its **stages**, in order: the first state written at start, which stages carry a qualifier and a Step, and the stage whose end leads to `done`
+* its **roles**: what each does, how long each session lives, when a role gets a fresh session, and who reads and writes each of its artifacts
+* its **folder layout** beyond the spec folder above, and its artifacts
+* its **transitions** beyond the engine's, including where each topic goes when it closes
+* its **turn table**: for each state, the role, the folder it lists and the work
+* its **topics**: for each one the author, the reviewer, the subject, the request fields beyond `Subject`, `Build` and `Gates`, and **what counts as a Blocker**
+* any **reply keywords** for turns with no verdict, and any **outcome** on a closing verdict
+* what the Arbiter **does on a transition** besides writing the state, and its **commit points**
+* any **ruling with its own handling**, beyond abandoning the spec

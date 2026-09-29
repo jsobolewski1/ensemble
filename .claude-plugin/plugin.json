@@ -1,0 +1,17 @@
+{
+  "name": "ensemble",
+  "version": "0.1.0",
+  "description": "Multi-agent software development: spec-driven planning, code review and bug hunting in which AI agents review each other's work. Mix Claude, Codex and other agents in one team.",
+  "author": {
+    "name": "Jakub Sobolewski"
+  },
+  "homepage": "https://github.com/jsobolewski1/ensemble",
+  "repository": "https://github.com/jsobolewski1/ensemble",
+  "license": "MIT",
+  "keywords": [
+    "multi-agent",
+    "spec-driven-development",
+    "code-review",
+    "bug-hunting"
+  ]
+}

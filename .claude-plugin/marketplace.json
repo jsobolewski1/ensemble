@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ensemble",
+  "description": "Jakub Sobolewski's ensemble plugin: multi-agent spec-driven development and bug hunting for Claude Code.",
+  "owner": {
+    "name": "Jakub Sobolewski"
+  },
+  "plugins": [
+    {
+      "name": "ensemble",
+      "description": "Multi-agent software development: spec-driven planning, code review and bug hunting in which AI agents review each other's work.",
+      "source": "./",
+      "homepage": "https://github.com/jsobolewski1/ensemble",
+      "category": "development"
+    }
+  ]
+}
