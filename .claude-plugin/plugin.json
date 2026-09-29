@@ -1,7 +1,7 @@
 {
   "name": "ensemble",
   "version": "0.1.0",
-  "description": "Multi-agent software development: spec-driven planning, code review and bug hunting in which AI agents review each other's work. Mix Claude, Codex and other agents in one team.",
+  "description": "A team of AI agents that plan, build and review each other's work, with you as the team lead. Spec-driven development and bug hunting for Claude Code. Mix Claude, Codex and other agents in one team.",
   "author": {
     "name": "Jakub Sobolewski"
   },
