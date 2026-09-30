@@ -219,6 +219,18 @@ Most of the volume is cache reads, which bill at a fraction of fresh input. Ever
 
 </details>
 
+## 🍳 What's cooking
+
+What comes next, in the order it's coming.
+
+1. 🔥 **On the stove: a guided kick-off.** A wizard that walks you through starting a spec, step
+   by step, instead of one command and a blank brief.
+2. 🔪 **Prepping: `bootstrap`.** A skill that sets up what a repository needs before its first spec,
+   where it's missing: an `AGENTS.md`, and essential project skills for the architect, the coder
+   and QA. Every role then has project rules to load from day one.
+
+Missing an ingredient? [Open an issue](https://github.com/jsobolewski1/fondue/issues).
+
 ## 📄 License
 
 [MIT](LICENSE) © 2026 Jakub Sobolewski
