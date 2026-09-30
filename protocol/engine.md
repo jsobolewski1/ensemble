@@ -43,8 +43,8 @@ fondue/<kind>/
 ## Starting a spec
 The User opens a session, loads a process skill and asks it to start a spec. That session is the Arbiter. In this order, it:
 1. reads `integrations/agents/contract.md` at the plugin root. If the User's agents were never set up, it runs the first-run setup that file describes.
-2. fixes the roster with the User: agent, model, effort and skills for each role. The Arbiter's own line records the model and effort it runs on. A session cannot see its own effort, so the Arbiter asks the User rather than guessing.
-3. creates the spec folder with the process skill's layout, writes `roster.md`, and writes the process skill's first state into `current-state.txt`. `99-user.md` and `stats.md` are appended to, and are created on their first line.
+2. fixes the roster with the User: agent, model, effort and skills for each role. The Arbiter's own row records the model and effort it runs on. A session cannot see its own effort, so the Arbiter asks the User rather than guessing.
+3. creates the spec folder with the process skill's layout, writes `roster.md`, and writes the process skill's first state into `current-state.txt`. `99-user.md` and `stats.md` are appended to, and are created on their first entry, `stats.md` with its table header.
 
 The User starts only the Arbiter. The Arbiter spawns every other role.
 
@@ -74,38 +74,56 @@ The Arbiter picks the next state from the reply line alone and never opens the a
 ## Artifacts every spec has
 
 ### roster.md
-The process skill, then the agent, model and effort of each role, the skills of each role, and the handle of each spawned role.
+The process skill, then the agent, model and effort of each role, the handle of each spawned role, and the skills of each role.
 ```
-Skill: fondue:spec
-Arbiter: opus, high
-Architect: fable, high | agent a3c99aa3cf5f0bd4a
-Architecture Reviewer: codex gpt-5.6-sol, xhigh | session 01a0bf4c-f5ae-7851-81d7-13355d6fae9a
-Coder: opus, high
+# Roster
 
-Skills:
-  all: <skill>, <skill>
-  Coder, Code Reviewer: <skill>
+**Skill:** fondue:spec
+
+| Role | Agent | Model | Effort | Handle |
+|---|---|---|---|---|
+| Arbiter | claude | opus | high | - |
+| Architect | claude | fable | high | agent a3c99aa3cf5f0bd4a |
+| Architecture Reviewer | codex | gpt-5.6-sol | xhigh | session 01a0bf4c-f5ae-7851-81d7-13355d6fae9a |
+| Coder | claude | opus | high | - |
+
+## Skills
+
+- **all:** <skill>, <skill>
+- **Coder, Code Reviewer:** <skill>
+
+## Agent settings
+
+- **Architecture Reviewer:** <what its adapter asks to be decided up front, e.g. Codex's sandbox and network>
 ```
-For a Claude role the model is the spawn call's name: `sonnet`, `opus`, `haiku` or `fable`. A role on another agent is written `<agent> <model>`, where `<agent>` names its adapter in `~/.config/fondue/integrations/agents/`. Effort is one of `low`, `medium`, `high`, `xhigh`, `max`. The `Skill:` line tells a new Arbiter session, or a role, which process the spec runs.
+Agent is `claude` or the name of an adapter in `~/.config/fondue/integrations/agents/`. For a Claude role the model is the spawn call's name: `sonnet`, `opus`, `haiku` or `fable`. Effort is one of `low`, `medium`, `high`, `xhigh`, `max`. The **Skill:** line tells a new Arbiter session, or a role, which process the spec runs. Agent settings is there only when a role's adapter asks for decisions at roster time.
 
-The Arbiter adds the handle when it spawns a role, `| agent <id>` for Claude and `| session <handle>` for an adapter, and replaces it when it spawns a new session for the role. The handle is how it sends the role later turns and finds its figures for `stats.md`.
+The Arbiter writes the handle into the role's Handle cell when it spawns the role, `agent <id>` for Claude and `session <handle>` for an adapter, and replaces it when it spawns a new session for the role. Until then the cell is `-`. The handle is how it sends the role later turns and finds its figures for `stats.md`.
 
 ### 99-user.md
 Every ruling, at any stage, in the User's own words. Appended and never rewritten. It sits at the spec root so that every role can read it.
 ```
 ## <YYYY-MM-DD> <state>[ | settles <file>#<id>]
-Asked: <the question put to the User>
-Ruling: <the User's words>
+
+**Asked:** <the question put to the User>
+
+**Ruling:** <the User's words>
 ```
 
 ### stats.md
-Owned by the Arbiter, one line per finished turn, never read by another role.
+Owned by the Arbiter, one table row per finished turn, never read by another role.
 ```
-<YYYY-MM-DD> <role> <model>/<effort> | <the reply line, verbatim> | <in>/<out>/<cc>cc/<cr>cr <min>m
+| Date | Role | Model | State | Result | Counts | Tokens | Time |
+|---|---|---|---|---|---|---|---|
+| 2026-09-30 | Code Reviewer | fable/high | implementation:01:Review | approved | 0 Blocker, 0 Nit | out 6.33k · write 103k · read 630k · in 228 | 2m |
+| 2026-09-30 | Coder | opus/high | implementation:01:Draft | BLOCKED: host firewall rule for port 8068 missing | - | out 16.6k · write 120k · read 5.43M · in 98 | 11m |
+| 2026-09-26 | Architecture Reviewer | codex gpt-5.6-sol/xhigh | pre-plan:Review | approved-with-fixes | 2 Blocker, 1 Nit | in 3.14M (2.97M cached) · out 22.7k | 8m |
 ```
-For a Claude role, the last field is the output of `turn-stats.py` next to this file, run from the project directory with the role's agent id (`--all` prints every turn). The transcript it reads is at `~/.claude/projects/<project>/<arbiter-session-id>/subagents/agent-<agent-id>.jsonl`, where `<project>` is the working directory with `/` replaced by `-`, e.g. `/home/x/project` -> `-home-x-project`. Run it after the task-notification that the agent finished, not on its reply: the reply lands before the transcript's last usage lines, and figures taken then are short.
+State, Result and Counts come from the reply line. Result is the verdict for DONE, `CONFLICT: <file>#<id>` or `BLOCKED: <the reply's sentence>` otherwise. The written paths stay out: they are on disk and in git. A `|` inside a cell is written `\|`.
 
-For a role on another agent, the last field is the output of its adapter's Stats, or `-` if the adapter has none. It is not comparable with a Claude row.
+For a Claude role, the last two cells are the output of `turn-stats.py` next to this file, run from the project directory with the role's agent id (`--all` prints every turn). The transcript it reads is at `~/.claude/projects/<project>/<arbiter-session-id>/subagents/agent-<agent-id>.jsonl`, where `<project>` is the working directory with `/` replaced by `-`, e.g. `/home/x/project` -> `-home-x-project`. Run it after the task-notification that the agent finished, not on its reply: the reply lands before the transcript's last usage lines, and figures taken then are short.
+
+For a role on another agent, they are the output of its adapter's Stats, or `- | -` if the adapter has none. It is not comparable with a Claude row.
 
 Never take token numbers from the role itself: a session cannot count its own tokens.
 
@@ -131,10 +149,10 @@ One folder per topic. Every round of that topic lands there. The files share **o
 ### review/<topic>/00-request.md
 Written by the author to open the first round. Later rounds have no request: the answer that asks for another round names the new subject.
 ```
-Subject: <file> | <file>, <file> | git diff <from>..<to>
-Build: <command> - green, <n> tests passed        (code topics)
-Gates: <command> - <result>                       (code topics, each gate the build does not run)
-<the process skill's own fields>
+- **Subject:** <file> | <file>, <file> | git diff <from>..<to>
+- **Build:** <command> - green, <n> tests passed        (code topics)
+- **Gates:** <command> - <result>                       (code topics, each gate the build does not run)
+- <the process skill's own fields>
 
 <what changed and anything the reviewer must know that no artifact says>
 ```
@@ -143,11 +161,15 @@ Gates: <command> - <result>                       (code topics, each gate the bu
 Findings and the verdict. Nothing else: no list of what was checked and found fine, no summary. Those are not findings, and every later reader pays for them.
 ```
 ## #1 <one-sentence title>
-Severity: Blocker | Nit
+
+**Severity:** Blocker | Nit
+
 <description, with its anchor>
-Proposed solution: <what to change>
+
+**Proposed solution:** <what to change>
 
 ## #2 <one-sentence title> (re 01-review.md#3)
+
 ...
 
 Verdict: changes-requested
@@ -164,14 +186,16 @@ A process skill may add an outcome to a closing verdict, e.g. `Verdict: approved
 ### review/<topic>/NN-answer.md
 The author answers every finding by its id, one line each where possible. Prose only for a challenge, or for a fix that departs from the proposal, and only as much as the reviewer needs to judge it.
 ```
-#1 accepted, fixed in <file or commit>
-#2 accepted, fixed differently in <file or commit>: <why>
-#3 challenged: <position, with its anchor>
-#4 declined (Nit)
-#5 deadlocked: <position, with its anchor>
+- #1 accepted, fixed in <file or commit>
+- #2 accepted, fixed differently in <file or commit>: <why>
+- #3 challenged: <position, with its anchor>
+- #4 declined (Nit)
+- #5 deadlocked: <position, with its anchor>
 
-Build: <command> - green, <n> tests passed        (code topics)
-Gates: <command> - <result>                       (code topics, each gate the build does not run)
+**Build:** <command> - green, <n> tests passed        (code topics)
+
+**Gates:** <command> - <result>                       (code topics, each gate the build does not run)
+
 Verdict: next-round <subject>
 ```
 The verdict line is one of:
@@ -215,7 +239,7 @@ A role exchanges messages with the Arbiter only, never with another role, and ne
 ### Starting a role
 The Arbiter spawns each role right before its first turn, and again whenever the process skill calls for a fresh session.
 
-**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: fondue:role-<effort>` and `model: <model>`, both from the role's `roster.md` line. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
+**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: fondue:role-<effort>` and `model: <model>`, both from the role's `roster.md` row. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
 
 The spawn call has no effort parameter: effort comes only from the agent definition. So the five agent types `fondue:role-{low,medium,high,xhigh,max}` must exist before the Arbiter session starts, because agent types load at session start. The fondue plugin ships them, for every process skill. Each definition sets only `effort` and a one-hour prompt cache (`experimental.cacheTtl: 1h`), and the model passed on the spawn call overrides the definition's. Why the hour: a subagent's cache otherwise lives five minutes, and a role waits longer than that for every review, so each of its turns began by re-writing its whole context to the cache. Claude Code ignores the hour while a subscription draws on usage credits. If a type is missing, the Arbiter stops and tells the User. It never spawns at a different effort.
 
@@ -225,7 +249,7 @@ Load the fondue:<process skill> skill. Your role is <role>. Spec: <path to spec 
 ```
 The role loads the process skill, this file, and the skills `roster.md` gives it, then takes the turn like any other.
 
-**On another agent**, the role is started and sent its turns through its adapter's Start and Turn, as `integrations/agents/contract.md` says. Its prompt names each skill by path, `Read <skill dir>/SKILL.md and follow it as the <name> skill.`, because no other agent can load a Claude Code plugin's skills. The Arbiter knows the directory of each fondue skill, since they sit together under the plugin's `skills/`. It does not know where a project or User skill in the roster lives, so it asks the User once and records the path in the roster's Skills block.
+**On another agent**, the role is started and sent its turns through its adapter's Start and Turn, as `integrations/agents/contract.md` says. Its prompt names each skill by path, `Read <skill dir>/SKILL.md and follow it as the <name> skill.`, because no other agent can load a Claude Code plugin's skills. The Arbiter knows the directory of each fondue skill, since they sit together under the plugin's `skills/`. It does not know where a project or User skill in the roster lives, so it asks the User once and records the path in the roster's Skills section.
 
 ### A turn
 ```

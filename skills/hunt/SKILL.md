@@ -204,19 +204,19 @@ Outcome: fix | exit
 
 ### review/hunt/00-request.md
 ```
-Subject: hunt/01-diagnosis.md
-Build: <command> - green, <n> tests passed        (only if diagnostic code was committed)
+- **Subject:** hunt/01-diagnosis.md
+- **Build:** <command> - green, <n> tests passed        (only if diagnostic code was committed)
 ```
 
 ### review/fix/00-request.md
 `fix` is a code topic. Its live check is reported as `Live:`, in place of `Gates:`, because it needs its
 result from before the fix too.
 ```
-Subject: git diff <from>..<to>
-Red: <red commit sha> - <check command> - fails: <the failure, one line>
-Build: <command> - green, <n> tests passed
-Live: <run> - before <result>, after <result>      (only when report.md's Fixed means asks for it)
-Diagnostic commits: <sha> kept (<why>) | <sha> reverted in <sha>
+- **Subject:** git diff <from>..<to>
+- **Red:** <red commit sha> - <check command> - fails: <the failure, one line>
+- **Build:** <command> - green, <n> tests passed
+- **Live:** <run> - before <result>, after <result>      (only when report.md's Fixed means asks for it)
+- **Diagnostic commits:** <sha> kept (<why>) | <sha> reverted in <sha>
 ```
 
 The hunt's closing verdict carries the outcome, e.g. `Verdict: approved hunt/02-diagnosis.md | exit`.

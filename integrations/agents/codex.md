@@ -46,7 +46,7 @@ By path, as the contract's default: the spawn prompt says `Read <skill dir>/SKIL
 * A directory outside the workdir, such as a sibling checkout: `--add-dir <dir>` on Start, `-c 'sandbox_workspace_write.writable_roots=["<dir>"]'` on every Turn.
 * Network, e.g. for a build that downloads dependencies: `-c sandbox_workspace_write.network_access=true`, on Start and on every Turn.
 
-Decide both when the roster is written. Otherwise the role's first turn fails and comes back as BLOCKED.
+Decide both when the roster is written, and record them under its Agent settings. Otherwise the role's first turn fails and comes back as BLOCKED.
 
 ## Model and effort
 `-m <model>` on Start and Turn. Effort: `-c model_reasoning_effort='"<effort>"'`. fondue's five levels map one to one: `low`, `medium`, `high`, `xhigh`, `max`. Each returned a reply on `gpt-5.6-sol` (0.155.0-alpha.9.2). The model also accepts `none` and `minimal`.
@@ -58,7 +58,7 @@ An unsupported value fails the turn with HTTP 400 and lists the supported ones: 
 python3 <this folder>/codex-turn-stats.py <session id>          # newest turn; honours $CODEX_HOME
 python3 <this folder>/codex-turn-stats.py <session id> --all
 ```
-It reads the rollout log under `$CODEX_HOME/sessions/`. Output: `<in>(<cached> cached)/<out> <min>m`. Codex counts cached input inside input, so the row is not comparable with a Claude row.
+It reads the rollout log under `$CODEX_HOME/sessions/`. Output: the Tokens and Time cells of a `stats.md` row, e.g. `in 3.14M (2.97M cached) · out 22.7k | 8m`. Codex counts cached input inside input, so the row is not comparable with a Claude row.
 
 Never use the `tokens used` line the CLI prints. It is the session total so far, not the turn's figure. It has no input/output/cache split, and its thousands separator is a space (`20 141`).
 

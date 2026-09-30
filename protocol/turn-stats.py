@@ -5,8 +5,8 @@ Usage:
     turn-stats.py <id> [--all] [--project DIR]
 
 <id> is a session id (a role User started) or an agent id (a role Arbiter spawned);
-the transcript is found either way. Default prints the newest turn, ready to paste
-into stats.md; --all prints every turn of that session, oldest first.
+the transcript is found either way. Default prints the newest turn as the Tokens
+and Time cells of a stats.md row; --all prints every turn of that session, oldest first.
 
 A transcript writes one line per content block and every line repeats its message's
 whole usage, so each message is counted once, by id, with its last line winning.
@@ -43,10 +43,18 @@ def turns(path):
     return [t for t in out if t['stamps']]
 
 
+def human(n):
+    """A token count to three significant digits: 98, 16.6k, 5.43M."""
+    for size, suffix in ((1, ''), (1e3, 'k'), (1e6, 'M')):
+        if float(f'{n / size:.3g}') < 1000:
+            return f'{n / size:.3g}{suffix}'
+    return f'{n / 1e9:.3g}G'
+
+
 def line(turn):
-    n = [sum(u.get(k, 0) for u in turn['usage'].values()) for k in KEYS]
+    i, o, cc, cr = (sum(u.get(k, 0) for u in turn['usage'].values()) for k in KEYS)
     at = [datetime.fromisoformat(s.replace('Z', '+00:00')) for s in (turn['stamps'][0], turn['stamps'][-1])]
-    return f"{n[0]}/{n[1]}/{n[2]}cc/{n[3]}cr {round((at[1] - at[0]).seconds / 60)}m"
+    return f"out {human(o)} · write {human(cc)} · read {human(cr)} · in {human(i)} | {round((at[1] - at[0]).seconds / 60)}m"
 
 
 args = [a for a in sys.argv[1:] if not a.startswith('--')]

@@ -143,13 +143,16 @@ Both skills run on one engine, [`protocol/engine.md`](protocol/engine.md):
 
 ```
 ## #1 The cluster socket binds every interface by default, and on every host a dev run lands on
-Severity: Blocker
+
+**Severity:** Blocker
+
 `ClusterFactory.create(...)` binds the cluster socket at `new InetSocketAddress(
 properties.getBindAddress(), cluster.getPort())`, and `app.bind-address` defaults to `0.0.0.0`
 (`application.yml:9`, `ServerProperties.java:21`). `application-dev.yml` does not narrow it. [...]
 The phase text forbids this: "do not bind it to a publicly reachable interface in any test or
 default beyond what the deployment needs" (phase-02.md, Essential knowledge 9).
-Proposed solution: add `app.cluster.bind-address`. [...]
+
+**Proposed solution:** add `app.cluster.bind-address`. [...]
 ```
 
 </details>

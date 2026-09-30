@@ -5,11 +5,11 @@ Usage:
     codex-turn-stats.py <session-id> [--all]
 
 <session-id> is the Codex session id printed in the `codex exec` run header and recorded
-on the role's line in roster.md. The log is found under
+in the role's Handle cell in roster.md. The log is found under
 $CODEX_HOME/sessions/<yyyy>/<mm>/<dd>/rollout-<timestamp>-<session-id>.jsonl, where
 $CODEX_HOME defaults to ~/.codex.
-Default prints the newest turn, ready to paste into stats.md; --all prints every turn of
-that session, oldest first.
+Default prints the newest turn as the Tokens and Time cells of a stats.md row; --all
+prints every turn of that session, oldest first.
 
 A turn is one task_started .. task_complete span. Its tokens are the sum of the
 last_token_usage of every token_count event inside it; its duration is completed_at minus
@@ -19,12 +19,20 @@ Codex counts input differently from Claude: input_tokens includes cached input, 
 cached figure is printed in parentheses as a subset, not an addition. output_tokens
 includes reasoning tokens. The columns are not comparable with turn-stats.py's.
 
-Output: <in>(<cached> cached)/<out> <min>m
+Output: in <in> (<cached> cached) · out <out> | <min>m, with 3-digit k/M figures
 """
 import glob
 import json
 import os
 import sys
+
+
+def human(n):
+    """A token count to three significant digits: 98, 16.6k, 5.43M."""
+    for size, suffix in ((1, ''), (1e3, 'k'), (1e6, 'M')):
+        if float(f'{n / size:.3g}') < 1000:
+            return f'{n / size:.3g}{suffix}'
+    return f'{n / 1e9:.3g}G'
 
 
 def turns(path):
@@ -63,7 +71,7 @@ def main(argv):
     if not found:
         sys.exit(f'no finished turn in {logs[-1]}')
     for t in found if '--all' in argv else found[-1:]:
-        print(f"{t['in']}({t['cached']} cached)/{t['out']} {t['min']}m")
+        print(f"in {human(t['in'])} ({human(t['cached'])} cached) · out {human(t['out'])} | {t['min']}m")
 
 
 if __name__ == '__main__':

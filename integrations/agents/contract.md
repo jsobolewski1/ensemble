@@ -24,7 +24,7 @@ An adapter has these sections, in this order. Every claim about how the agent be
 5. **Skills** - how the role gets its skills. The engine's default works for any agent that can read files: the prompt says `Read <skill dir>/SKILL.md and follow it as the <name> skill.` in place of `Load the <name> skill.`
 6. **Permissions** - how the role gets what the engine requires of a role: read the project, write the spec folder and the code, run the build, commit. How that is set on Start, and again on every Turn if the setting does not carry over to a continued session.
 7. **Model and effort** - the flags, and how fondue's efforts (`low` … `max`) map to the agent's.
-8. **Stats** - the command that prints one turn's tokens and minutes, or `none`. With `none`, the `stats.md` row carries `-`, never an estimate.
+8. **Stats** - the command that prints one turn's tokens and minutes, or `none`. With `none`, the `stats.md` row carries `-` in its Tokens and Time cells, never an estimate.
 9. **Verify** - a two-turn check: a first turn, then a continued turn whose answer depends on the first. It shows that Turn continues the session rather than starting a new one.
 10. **Gotchas** - anything else that has bitten, as a RESULT.
 
