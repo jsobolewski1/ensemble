@@ -1,3 +1,4 @@
+<meta name="google-site-verification" content="MTz4heRcrDBp_OJvJCdytZcC2XKKcgvnuiYfBX3NW7w" />
 <h1 align="center">🫕 fondue</h1>
 
 <p align="center">
