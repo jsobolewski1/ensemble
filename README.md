@@ -1,6 +1,7 @@
-<h1 align="center">fondue</h1>
+<h1 align="center">🫕 fondue</h1>
 
 <p align="center">
+  <i>One pot. Everyone brings a fork. No double-dipping.</i><br><br>
   <b>A team of AI agents that plan, build and review each other's work, with you as the team lead.</b><br>
   Spec-driven development and bug hunting for Claude Code.
 </p>
@@ -17,7 +18,8 @@ team: agents that plan, build and review each other's work until it holds up. It
 word. Give it a try :)
 
 Why fondue? One shared pot, and everyone brings their own fork. The spec folder is the pot, and
-every role dips in with a session of its own, on whichever agent you seat.
+every role dips in with a session of its own, on whichever agent you seat. And one house rule:
+**no double-dipping.** Nobody reviews their own work.
 
 > ⭐ fondue is free, and so is a GitHub star. You're one click away from making my day!
 
@@ -166,12 +168,12 @@ Proposed solution: add `app.cluster.bind-address`. [...]
 - **First-run setup.** The first time you start a spec, the Arbiter **finds the agents on your
   machine**, sets up the ones you pick, and checks that each can keep a session across turns.
   Adapters live in `~/.config/fondue/integrations/agents/`.
-- **Bring your own agent.** A **Codex** adapter ships with the plugin. The contract for writing your
+- **Bring your own fork.** A **Codex** adapter ships with the plugin. The contract for writing your
   own is in [`integrations/agents/contract.md`](integrations/agents/contract.md).
 - **Bring your own rules.** Your coding rules and project skills aren't part of fondue. Name them
   per role, and every role loads them.
 
-## 📁 The spec folder
+## 📁 The spec folder (the pot)
 
 Everything is **plain files in your repository**, which you can read, diff and review:
 
@@ -187,7 +189,7 @@ fondue/specs/017-<name>/        (a real spec, at done)
 - Finished work is archived under `fondue/specs/archive/` and `fondue/bugs/archive/`.
 - **Don't want it in git?** Ignore `fondue/`. The process detects that and skips its own commits.
 
-## 💰 Cost
+## 💰 Cost: good cheese isn't cheap
 
 **This is not a cheap way to write code.** Use it where a wrong design or a wrong diagnosis would
 cost more than the tokens. For a small, obvious change, just make the change.
