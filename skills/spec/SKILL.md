@@ -4,7 +4,7 @@ description: "Specification-driven multi-model software development protocol. Us
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
-  version: 4
+  version: 5
   status: "living doc — update in place when the workflow changes"
 ---
 

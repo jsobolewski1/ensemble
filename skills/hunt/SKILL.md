@@ -4,7 +4,7 @@ description: "Bug-hunting sibling of spec: two actors, a Hunter and a Reviewer, 
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
-  version: 2
+  version: 3
   status: "young - run end to end on one real bug so far; update in place as runs teach us"
 ---
 
@@ -95,9 +95,9 @@ The stage closes on verdict `approved` or `closed`, and the next state is `done`
 
 ### Exit to a spec
 When the root cause is real but its fix is a design change - a port, a contract, a module
-boundary - the diagnosis says `Outcome: exit`. The hunt still closes on approval, and the spec goes to
+boundary - the diagnosis says `Outcome: exit`. The hunt still closes on approval, and the bug goes to
 `done`. The User may then open a spec. Its brief restates the facts it needs from the
-diagnosis, because an archived spec is history, not a source.
+diagnosis, because an archived bug is history, not a source.
 
 ## State
 `current-state.txt` is `<stage>[:<Step>]`, e.g. `report`, `hunt:Review`, `fix:Answer`, `done`.
@@ -140,8 +140,8 @@ The Arbiter stays although there are only two actors. Why: if the Hunter sends t
 one party writes the reviewer's prompt and judges its own review. The Arbiter costs a reply line per
 turn; it buys neutrality.
 
-Both actors live across both stages. Why: a spec spawns a fresh Coder per phase because a session
-kept across many phases re-reads its whole history. A bug has two stages and one fix. The Hunter's
+Both actors live across both stages. Why: a spec spawns a fresh Coder per phase by default because a
+session kept across many phases re-reads its whole history. A bug has two stages and one fix. The Hunter's
 context of the hunt is the asset the fix needs, and a Reviewer who approved the cause is the one to
 check the fix against it.
 
