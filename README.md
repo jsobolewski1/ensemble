@@ -25,7 +25,7 @@ every role dips in with a session of its own, on whichever agent you seat. And o
   <img src="assets/fondue-workflow.png" alt="You and the Arbiter exchange the brief and rulings. The Arbiter sends each role only &quot;your turn&quot;. Architect, Architecture Reviewer, Coder, Code Reviewer and Handover Writer each dip their own fork into one shared pot, the spec folder. The Arbiter never touches the pot." width="820">
 </p>
 
-> ⭐ fondue is free, and so is a GitHub star. You're one click away from making my day!
+> ⭐ Hey! This fondue is free, and so is a GitHub star ;) You're one click away from making my day!
 
 ## 🚀 Quick start
 
