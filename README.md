@@ -204,6 +204,7 @@ Most of the volume is cache reads, which bill at a fraction of fresh input. Ever
 <summary><b>How the process keeps cost down</b></summary>
 
 - a fresh Coder and Code Reviewer for each phase, instead of one session re-reading its history
+- a one-hour prompt cache for every role, so waiting for a review doesn't re-write its context
 - messages that carry only whose turn it is, never content
 - one-line replies
 - reviews that contain only findings
