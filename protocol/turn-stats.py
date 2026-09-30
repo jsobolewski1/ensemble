@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Token figures for one converge turn, read from a Claude Code transcript.
+"""Token figures for one fondue turn, read from a Claude Code transcript.
 
 Usage:
     turn-stats.py <id> [--all] [--project DIR]

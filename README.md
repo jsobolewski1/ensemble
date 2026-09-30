@@ -31,10 +31,10 @@ every role dips in with a session of its own, on whichever agent you seat. And o
 ```
 
 1. **Restart Claude Code.** Agent types load at session start.
-2. **Open your project** and run `/fondue:converge start a spec called <name>`.
+2. **Open your project** and run `/fondue:spec start a spec called <name>`.
 3. **Write the brief** when the Arbiter asks for it, and lead the team from there.
 
-For a bug, use `/fondue:converge-bug` instead. To try a local checkout without installing:
+For a bug, use `/fondue:hunt` instead. To try a local checkout without installing:
 `claude --plugin-dir /path/to/fondue`.
 
 ## ✨ What makes it different
@@ -62,8 +62,8 @@ fondue is young. Here's what it has actually run:
 
 | | |
 |---|---|
-| ✅ **converge** | ~20 specs done across several projects, from small features to a 500-file refactoring |
-| ✅ **converge-bug** | 1 bug to a verified fix |
+| ✅ **spec** | ~20 specs done across several projects, from small features to a 500-file refactoring |
+| ✅ **hunt** | 1 bug to a verified fix |
 | ✅ **Mixed vendors** | Codex has held the Architecture Reviewer seat in real specs, through an earlier setup |
 | ✅ **First-run agent setup** | Dry-run against Codex |
 | 🧪 **Not yet run end to end** | The shared engine, reopening a failed approach, abandoning a spec, and roles driven through the new agent adapters |
@@ -78,7 +78,7 @@ Earlier specs ran on earlier versions of the protocol. **Issues and war stories 
 - **Optional:** the command-line tool of any other agent you want in the team, installed and signed
   in, e.g. OpenAI's `codex`.
 
-## 🏗️ How converge works
+## 🏗️ How spec works
 
 ```
 brief ─▶ pre-plan ─▶ plan ─▶ implementation ─▶ handover ─▶ done
@@ -108,7 +108,7 @@ brief ─▶ pre-plan ─▶ plan ─▶ implementation ─▶ handover ─▶ d
   plan was and what broke it**. Work already committed is kept, amended or reverted, phase by phase.
 - **Abandoning.** A spec that won't deliver can be stopped, and its archive says so.
 
-## 🐞 How converge-bug works
+## 🐞 How hunt works
 
 Use it for a bug whose cause is **unknown and takes experiments to find**: intermittent,
 distributed, load-dependent. A bug with a stack trace and an obvious fix doesn't need it.
@@ -161,7 +161,7 @@ Proposed solution: add `app.cluster.bind-address`. [...]
 
 - **Default team:** every role on **Opus**, except the Architect on **Fable**, all at effort `high`.
   The reasons, observed on real runs, are in
-  [`design-notes.md`](skills/converge/design-notes.md). A cheaper Arbiter or Coder looked like a
+  [`design-notes.md`](skills/spec/design-notes.md). A cheaper Arbiter or Coder looked like a
   saving and wasn't.
 - **Mix vendors.** Any role can run on another agent. A model is a worse reviewer of its own blind
   spots than of someone else's.

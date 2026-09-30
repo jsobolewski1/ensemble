@@ -35,7 +35,7 @@ The session id is a UUID in the run header, as `session id: 01a0bf4c-...`. Recor
 `exec resume` accepts neither `-s`, `-C` nor `--add-dir` (verified on 0.154.0-alpha.6.2, and its `--help` on 0.155.0-alpha.9.2). Permissions are set through `-c` on every turn (see Permissions).
 
 ## Reply
-The `-o` file holds exactly the final message. Stdout carries the banner, the reasoning trace and the token line, so it is never parsed. Use one reply file per role, e.g. `$TMPDIR/converge-<spec>-<role>.txt`.
+The `-o` file holds exactly the final message. Stdout carries the banner, the reasoning trace and the token line, so it is never parsed. Use one reply file per role, e.g. `$TMPDIR/fondue-<spec>-<role>.txt`.
 
 ## Skills
 By path, as the contract's default: the spawn prompt says `Read <skill dir>/SKILL.md and follow it as the <name> skill.` That works whatever Codex has imported. The desktop app can import Claude's user-level skills (`~/.claude/skills/`), but that covers neither skills installed by a plugin nor a project's `.claude/skills/`.

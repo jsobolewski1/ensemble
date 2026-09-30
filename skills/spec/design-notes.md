@@ -1,4 +1,4 @@
-# converge — design notes
+# spec — design notes
 
 For the User choosing a roster or changing the skill. Roles do not read this file.
 

@@ -1,6 +1,6 @@
 # Integrations - the agent contract and first-run setup
 
-Read by the Arbiter of any fondue skill that seats roles (converge, converge-bug), at `start` and whenever the roster names an agent. Roles never read it.
+Read by the Arbiter of any fondue skill that seats roles (spec, hunt), at `start` and whenever the roster names an agent. Roles never read it.
 
 A role runs on Claude, through the Agent tool (see the engine's `Starting a role`, `protocol/engine.md`), or on any other agent the User has registered. The engine needs the same few things from every agent. How one agent does them is written in its **adapter**: one file per agent, following the contract below.
 

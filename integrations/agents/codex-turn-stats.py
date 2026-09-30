@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Token figures for one converge turn, read from a Codex rollout log.
+"""Token figures for one fondue turn, read from a Codex rollout log.
 
 Usage:
     codex-turn-stats.py <session-id> [--all]

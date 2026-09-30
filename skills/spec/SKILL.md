@@ -1,6 +1,6 @@
 ---
-name: converge
-description: "Specification-driven multi-model software development protocol. Use whenever a spec is started, continued, planned, implemented or reviewed. Read fondue/specs/<spec>/current-state.txt first; it names the live stage. fondue/specs/archive/ is history, never current truth. Bugs live in fondue/bugs/ and run on converge-bug instead."
+name: spec
+description: "Specification-driven multi-model software development protocol. Use whenever a spec is started, continued, planned, implemented or reviewed. Read fondue/specs/<spec>/current-state.txt first; it names the live stage. fondue/specs/archive/ is history, never current truth. Bugs live in fondue/bugs/ and run on hunt instead."
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
@@ -8,7 +8,7 @@ metadata:
   status: "living doc — update in place when the workflow changes"
 ---
 
-# converge — from idea to merged code
+# spec — from idea to merged code
 
 A spec goes from the User's brief to merged code through fixed stages. Each AI session holds one role. Sessions take turns and share nothing but the files in the spec folder and fixed control messages.
 
@@ -17,7 +17,7 @@ A spec goes from the User's brief to merged code through fixed stages. Each AI s
 ## Glossary
 The engine's glossary holds, with these additions:
 
-* **Kind** - `specs`: a converge spec's folder is `fondue/specs/<spec>/`.
+* **Kind** - `specs`: a spec's folder is `fondue/specs/<spec>/`.
 * **Stage** - one of `brief`, `pre-plan`, `plan`, `implementation`, `handover`, then the engine's `done` or `abandoned`.
 * **Phase** - one numbered part of the implementation. `NN` is always two digits, from `01`.
 * **Role** - the engine's User and Arbiter, and Architect, Architecture Reviewer, Coder, Code Reviewer. An ad-hoc Handover Writer is not a roster role.

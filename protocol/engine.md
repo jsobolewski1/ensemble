@@ -1,6 +1,6 @@
 # engine - the machinery every fondue process runs on
 
-A **process skill** takes one unit of work through fixed stages, with AI sessions in roles that review each other's work. `converge` (a feature) and `converge-bug` (a bug) are process skills. This file is what they share: state, turns, replies, rulings, review, and commits. A process skill defines only what differs, the hooks listed at the end, and says so in its own words.
+A **process skill** takes one unit of work through fixed stages, with AI sessions in roles that review each other's work. `spec` (a feature) and `hunt` (a bug) are process skills. This file is what they share: state, turns, replies, rulings, review, and commits. A process skill defines only what differs, the hooks listed at the end, and says so in its own words.
 
 Every role and the Arbiter read this file together with their process skill. Where the two conflict, the process skill wins, and it says so in place.
 
@@ -76,7 +76,7 @@ The Arbiter picks the next state from the reply line alone and never opens the a
 ### roster.md
 The process skill, then the agent, model and effort of each role, the skills of each role, and the handle of each spawned role.
 ```
-Skill: fondue:converge
+Skill: fondue:spec
 Arbiter: opus, high
 Architect: fable, high | agent a3c99aa3cf5f0bd4a
 Architecture Reviewer: codex gpt-5.6-sol, xhigh | session 01a0bf4c-f5ae-7851-81d7-13355d6fae9a
@@ -215,9 +215,9 @@ A role exchanges messages with the Arbiter only, never with another role, and ne
 ### Starting a role
 The Arbiter spawns each role right before its first turn, and again whenever the process skill calls for a fresh session.
 
-**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: fondue:converge-<effort>` and `model: <model>`, both from the role's `roster.md` line. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
+**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: fondue:role-<effort>` and `model: <model>`, both from the role's `roster.md` line. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
 
-The spawn call has no effort parameter: effort comes only from the agent definition. So the five agent types `fondue:converge-{low,medium,high,xhigh,max}` must exist before the Arbiter session starts, because agent types load at session start. The fondue plugin ships them, for every process skill. Each definition sets only `effort`, and the model passed on the spawn call overrides the definition's. If a type is missing, the Arbiter stops and tells the User. It never spawns at a different effort.
+The spawn call has no effort parameter: effort comes only from the agent definition. So the five agent types `fondue:role-{low,medium,high,xhigh,max}` must exist before the Arbiter session starts, because agent types load at session start. The fondue plugin ships them, for every process skill. Each definition sets only `effort`, and the model passed on the spawn call overrides the definition's. If a type is missing, the Arbiter stops and tells the User. It never spawns at a different effort.
 
 The spawn prompt is the role's first turn:
 ```

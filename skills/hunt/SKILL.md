@@ -1,6 +1,6 @@
 ---
-name: converge-bug
-description: "Bug-hunting sibling of converge: two actors, a Hunter and a Reviewer, take one bug from the User's report to a verified fix - reproduce, find the root cause, fix, prove the fix. Use whenever a bug is started, continued or reviewed. Bugs live in fondue/bugs/<bug>/; fondue/specs/ holds converge specs. Read fondue/bugs/<bug>/current-state.txt first; fondue/bugs/archive/ is history, never current truth."
+name: hunt
+description: "Bug-hunting sibling of spec: two actors, a Hunter and a Reviewer, take one bug from the User's report to a verified fix - reproduce, find the root cause, fix, prove the fix. Use whenever a bug is started, continued or reviewed. Bugs live in fondue/bugs/<bug>/; fondue/specs/ holds specs. Read fondue/bugs/<bug>/current-state.txt first; fondue/bugs/archive/ is history, never current truth."
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
@@ -8,7 +8,7 @@ metadata:
   status: "young - run end to end on one real bug so far; update in place as runs teach us"
 ---
 
-# converge-bug - from symptom to verified fix
+# hunt - from symptom to verified fix
 
 A bug goes from the User's report to a fix proven against its cause, through fixed stages.
 
@@ -17,8 +17,8 @@ A bug goes from the User's report to a fix proven against its cause, through fix
 state, turns, replies, rulings, review, and commits. This skill fills in the engine's hooks: stages,
 roles, artifacts, transitions, the turn table, and what counts as a Blocker.
 
-## Why a sibling of converge, not a mode
-In a feature, the uncertainty is the design; in a bug, it is the diagnosis. Converge's plan stage,
+## Why a sibling of spec, not a mode
+In a feature, the uncertainty is the design; in a bug, it is the diagnosis. The spec skill's plan stage,
 phase files and per-phase Coders manage a design across many phases. A bug has one cause and one fix,
 so they are ceremony here. What the engine gets right for bugs is kept and sharpened: the RESULT rule
 (run it, never read it), a reviewer who asks what else fits the evidence, and gates that fail today.
@@ -79,7 +79,7 @@ as much again. What guards against anchoring on the Hunter's story is the last c
 shown only when its rivals are ruled out, so a rival the Hunter never considered is a finding.
 
 The stage closes on verdict `approved` or `closed`. If the approved diagnosis has `Outcome: exit`,
-the next state is `done`, not `fix` (see Exit to converge). A bug that will not reproduce, or is not
+the next state is `done`, not `fix` (see Exit to a spec). A bug that will not reproduce, or is not
 worth the hunt, is abandoned as the engine says.
 
 ### fix
@@ -93,10 +93,10 @@ feature skill. There is no handover stage.
 
 The stage closes on verdict `approved` or `closed`, and the next state is `done`.
 
-### Exit to converge
+### Exit to a spec
 When the root cause is real but its fix is a design change - a port, a contract, a module
 boundary - the diagnosis says `Outcome: exit`. The hunt still closes on approval, and the spec goes to
-`done`. The User may then open a converge spec. Its brief restates the facts it needs from the
+`done`. The User may then open a spec. Its brief restates the facts it needs from the
 diagnosis, because an archived spec is history, not a source.
 
 ## State
@@ -140,7 +140,7 @@ The Arbiter stays although there are only two actors. Why: if the Hunter sends t
 one party writes the reviewer's prompt and judges its own review. The Arbiter costs a reply line per
 turn; it buys neutrality.
 
-Both actors live across both stages. Why: converge spawns a fresh Coder per phase because a session
+Both actors live across both stages. Why: a spec spawns a fresh Coder per phase because a session
 kept across many phases re-reads its whole history. A bug has two stages and one fix. The Hunter's
 context of the hunt is the asset the fix needs, and a Reviewer who approved the cause is the one to
 check the fix against it.
