@@ -84,7 +84,7 @@ Plan may not change the approach. A plan-stage RESULT that shows the approach ca
 **Light mode.** Light mode is for a spec whose design is settled and whose work is mechanical (a refactor, a move, a rename). The brief opts in with `Mode: light`. The final draft already carries each phase's tasks and gate: in mechanical work the tasks are the approach, and it is the one case where a draft carries them. Architect copies it to `plan.md`, splits its phases verbatim into `phase-NN.md` files, writes no `research.md` and opens no review. Nothing new was written, so there is nothing to review and the stage closes on that turn. Without the line, the spec runs in full mode.
 
 ### implementation
-Every phase gets a fresh Coder and a fresh Code Reviewer. The Arbiter spawns each of them before its first turn and sends it no more turns once the phase closes. Why: a session kept across phases re-reads its whole history on every tool call, which costs more than a new one reading the plan and one phase file.
+How long a Coder and a Code Reviewer live is the roster's **Sessions:**. With `fresh`, the default, every phase gets a new Coder and a new Code Reviewer: the Arbiter spawns each of them before its first turn and sends it no more turns once the phase closes. With `continue`, the pair spawned for the attempt's first phase takes every later phase too, and the Arbiter sends it each phase's turns by its handles. Why `fresh` is the default: a session kept into the next phase re-reads the context it carries on every call of that phase, and in the measured runs that cost more than a new session reading the plan and one phase file. `continue` is an experiment for specs with small phases, where it may cost less. `design-notes.md` has the arithmetic and the results so far.
 
 Coder implements the phase under the engine's Code turns: commit, build green, every gate the phase file names reported. Code Reviewer checks that the change is correct, introduces no problems and follows the project's guidelines, under the same section's limits. Anything missing, such as a test or a case, is a finding.
 
@@ -95,9 +95,9 @@ Not a stage: the way out of `plan` or `implementation` when the approved approac
 
 1. **Evidence.** The role that hits it, whichever it is, writes `reopen.md` at the spec root and replies BLOCKED, naming it in the reply's sentence. The file holds the RESULT, the `plan.md` lines of every decision the RESULT breaks, and the state it was found in. A Coder leaves the tree at its last green commit. A BLOCKED with no `reopen.md` is an ordinary BLOCKED.
 2. **Ruling.** The User reopens, abandons the spec (engine: abandoned), or rules the problem local and names who fixes it. Not every broken task breaks the approach.
-3. **The move.** On a reopen, the Arbiter moves `pre-plan/`, `plan/`, `review/` and `reopen.md` into the next `attempts/NN/`, sets the Handle cells of the Architect and the Architecture Reviewer in `roster.md` back to `-`, commits `fondue/specs/<spec>/` and sets `brief`. `roster.md`, `99-user.md`, `stats.md` and `landed.md` stay at the root: they span attempts.
+3. **The move.** On a reopen, the Arbiter moves `pre-plan/`, `plan/`, `review/` and `reopen.md` into the next `attempts/NN/`, sets the Handle cells of the Architect, the Architecture Reviewer, the Coder and the Code Reviewer in `roster.md` back to `-`, commits `fondue/specs/<spec>/` and sets `brief`. `roster.md`, `99-user.md`, `stats.md` and `landed.md` stay at the root: they span attempts.
 4. **The brief.** The User writes a new `pre-plan/00-brief.md`. It may start from the previous one, and it says whether the goal has changed.
-5. **The new pair.** A fresh Architect and a fresh Architecture Reviewer. Why: the pair that designed and approved the failed frame is the pair most anchored to it.
+5. **The new pair.** A fresh Architect and a fresh Architecture Reviewer, and later a fresh Coder and Code Reviewer for the new attempt's first phase, whatever **Sessions:** says. Why: the pair that designed and approved the failed frame is the pair most anchored to it, and a Coder or Code Reviewer kept from the failed attempt carries that frame in its context.
 6. **What they read.** Every attempt's `plan/plan.md` and `reopen.md`: what was planned, and why it failed. The Architect also reads `landed.md`, for the Landed work section. The research files of earlier attempts are a source: a FACT carried forward is restated in the new research with its origin, and a RESULT about the mechanism that failed is re-run. Drafts, reviews and phase files of earlier attempts are never read. Why: they argue for the frame that failed, while `plan.md` states it and `reopen.md` states what broke it.
 
 The new attempt then runs from `brief` like the first, with its phases numbered from `01` again. Its draft carries two more sections (see `pre-plan/NN-draft.md`).
@@ -125,7 +125,7 @@ The last phase is the highest `NN` in `plan/`. Listing that folder is the one li
 
 ### What the Arbiter does on a transition
 * **Landed work.** When the new state is `implementation:01:Draft`, or a reply closed a phase, it appends the line to `landed.md`.
-* **Fresh sessions.** A new phase always spawns a new Coder and a new Code Reviewer. A reopen spawns a new Architect and a new Architecture Reviewer.
+* **Fresh sessions.** With **Sessions:** `fresh`, a new phase spawns a new Coder and a new Code Reviewer. With `continue`, only the attempt's first phase does, and later phases reach the same pair by its handles. A reopen spawns a new Architect and a new Architecture Reviewer, and the new attempt's first phase a new Coder and Code Reviewer.
 * **Commit points.** When brief, pre-plan and plan end, when each phase ends, on a reopen after the move to `attempts/`, and when handover ends, including the documents it produced, wherever they landed.
 
 ## Who reads and writes what
@@ -155,7 +155,7 @@ The Handover Writer reads its request and what the request names. The User reads
 ## Artifacts
 
 ### roster.md
-As the engine says. The default roster runs every role at effort `high`, on Opus, except the Architect, which runs on Fable. The reasons for them are in `design-notes.md` next to this skill. Only the User reads that file, when choosing a roster.
+As the engine says, with one more line under **Skill:**, `**Sessions:** fresh | continue`: whether a Coder and a Code Reviewer live for one phase or for every phase of an attempt (see implementation). The Arbiter asks the User for it with the rest of the roster; `fresh` is the default. The default roster runs every role at effort `high`, on Opus, except the Architect, which runs on Fable. The reasons for them are in `design-notes.md` next to this skill. Only the User reads that file, when choosing a roster.
 
 ### landed.md
 Owned by the Arbiter, and appended when the implementation of an attempt starts and whenever a phase closes. It records where each phase's code ends, so a reopened spec can tell which commits belong to which phase. It works whether or not the spec folder is committed.
@@ -222,8 +222,8 @@ Written by the Arbiter in the User's own words: what to write, what it is for, a
 The engine's User and Arbiter, and:
 * **Architect** - author of the research, drafts and plan. Lives across pre-plan and plan of one attempt.
 * **Architecture Reviewer** - reviews drafts and phase files for whether they meet the brief, answer its questions, and are deliverable and testable. Lives across pre-plan and plan of one attempt.
-* **Coder** - implements one phase. Lives for that phase only.
-* **Code Reviewer** - reviews one phase. Lives for that phase only.
+* **Coder** - implements the phases. Lives for one phase, or with **Sessions:** `continue` for every phase of one attempt.
+* **Code Reviewer** - reviews the phases. Lives as long as the Coder.
 
 The User also decides the handover.
 

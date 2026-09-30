@@ -93,15 +93,17 @@ Earlier specs ran on earlier versions of the protocol. **Issues and war stories 
 | **Arbiter** | Spawns roles, sends turns, keeps state. Never reads the work | the whole spec |
 | **Architect** | Researches, drafts the approach, then the technical plan | one attempt |
 | **Architecture Reviewer** | Reviews both, after designing their own approach first | one attempt |
-| **Coder** | Implements one phase, leaving the build green on every turn | one phase |
-| **Code Reviewer** | Checks the change against the plan and your project's rules | one phase |
+| **Coder** | Implements one phase, leaving the build green on every turn | one phase, or all of them with `Sessions: continue` |
+| **Code Reviewer** | Checks the change against the plan and your project's rules | as long as the Coder |
 
 - **Two planning stages.** *Pre-plan* settles the **approach**: the decisions that shape it, the
   alternatives rejected, and the phases with their gates. *Plan* settles the **technical
   decisions** and tasks, each with how it is tested. If the approach is rejected, only a short draft
   is thrown away, never a set of detailed phase files.
 - **Fresh sessions per phase.** Each phase gets a new Coder and a new Code Reviewer, so no session
-  drags a long history along.
+  drags a long history along. For a spec with small phases, `Sessions: continue` in the roster keeps
+  the pair through every phase instead. It's an experiment, and `protocol/stats-total.py` gives each
+  spec one figure to compare.
 - **Reopening.** If the approach breaks in plan or halfway through implementation, the failed attempt
   is set aside, and you sign a new brief. A fresh Architect and Reviewer then read **what the old
   plan was and what broke it**. Work already committed is kept, amended or reverted, phase by phase.

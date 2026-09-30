@@ -20,3 +20,18 @@ The line matters as much as the split. When pre-plan drafts answered every techn
 A failed approach can surface at plan or deep in implementation, with phases already landed. Continuing the draft sequence would skip the step that matters most at that point: the reviewer writing their own approach before reading the draft, because `02-reviewer-research.md` already exists. So a reopen moves the failed attempt aside, re-signs the brief and seats a fresh pair, who are the least anchored to the old frame.
 
 What the new pair must not lose is why the old plan failed. So they read each earlier `plan.md`, which states the approach on a page because pre-plan drafts carry no technical detail, and each `reopen.md`, which holds the RESULT that broke it. They do not read the drafts, reviews and phase files, which argue for the failed frame. The draft must show that it does not rest on a broken assumption, and it must account for every landed commit, which makes knowing the failure something the reviewer can check.
+
+## Why a Coder and a Code Reviewer are fresh per phase by default, and when `continue` may win
+
+A session kept into the next phase re-reads the context it carries on every call of that phase. A fresh session instead writes its own way in: the skills, the plan, the phase file and the code it reads. Per phase, roughly:
+
+- **Extra cost of continuing:** context carried × calls in the phase × 0.1, the cache-read price.
+- **Saving:** the orientation a fresh session writes × 2, the one-hour cache-write price, plus the minutes it spends finding its way.
+
+In the archived runs a Coder's draft turn made 70-140 calls and ended at 190-320k of context. For 017's phase 02 that came to about 1.6M input-equivalent tokens fresh against 2.7-3.0M continued, with the five-minute cache of the time. The carried context and the number of calls both grow with the size of a phase, and the saving does not, so `continue` can win only on small phases: the next phase must make fewer calls than about 20 × the orientation saved ÷ the context carried. A continued session that outgrows its context window is compacted, a lossy reset that is worse than a fresh start, so `continue` is not for big specs.
+
+`Sessions: continue` is an experiment. Record every spec run with it below, next to a comparable one run `fresh`. `protocol/stats-total.py <stats.md>` gives the implementation stage's input-equivalent total. Compare only specs with the same roster, and pass `--write-weight 1.25` for specs run before 2026-09-30, when roles still had the five-minute cache.
+
+| Spec | Sessions | Phases | Implementation, input-equivalent | Implementation time | Notes |
+|---|---|---|---|---|---|
+| 017 | fresh | 4 | 8.45M (`--write-weight 1.25`) | 104m | baseline, five-minute cache, all Opus |
