@@ -1,6 +1,6 @@
 ---
 name: converge
-description: "Specification-driven multi-model software development protocol. Use whenever a spec is started, continued, planned, implemented or reviewed. Read ensemble/specs/<spec>/current-state.txt first; it names the live stage. ensemble/specs/archive/ is history, never current truth. Bugs live in ensemble/bugs/ and run on converge-bug instead."
+description: "Specification-driven multi-model software development protocol. Use whenever a spec is started, continued, planned, implemented or reviewed. Read fondue/specs/<spec>/current-state.txt first; it names the live stage. fondue/specs/archive/ is history, never current truth. Bugs live in fondue/bugs/ and run on converge-bug instead."
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
@@ -12,12 +12,12 @@ metadata:
 
 A spec goes from the User's brief to merged code through fixed stages. Each AI session holds one role. Sessions take turns and share nothing but the files in the spec folder and fixed control messages.
 
-**This skill runs on the ensemble engine.** Read `protocol/engine.md` at the plugin root, `../../protocol/engine.md` from this skill's directory, before anything below. The engine holds state, turns, replies, rulings, review, and commits. This skill fills in the engine's hooks: stages, roles, artifacts, transitions, the turn table, and what counts as a Blocker.
+**This skill runs on the fondue engine.** Read `protocol/engine.md` at the plugin root, `../../protocol/engine.md` from this skill's directory, before anything below. The engine holds state, turns, replies, rulings, review, and commits. This skill fills in the engine's hooks: stages, roles, artifacts, transitions, the turn table, and what counts as a Blocker.
 
 ## Glossary
 The engine's glossary holds, with these additions:
 
-* **Kind** - `specs`: a converge spec's folder is `ensemble/specs/<spec>/`.
+* **Kind** - `specs`: a converge spec's folder is `fondue/specs/<spec>/`.
 * **Stage** - one of `brief`, `pre-plan`, `plan`, `implementation`, `handover`, then the engine's `done` or `abandoned`.
 * **Phase** - one numbered part of the implementation. `NN` is always two digits, from `01`.
 * **Role** - the engine's User and Arbiter, and Architect, Architecture Reviewer, Coder, Code Reviewer. An ad-hoc Handover Writer is not a roster role.
@@ -26,7 +26,7 @@ The engine's glossary holds, with these additions:
 
 ## Folder layout
 ```
-ensemble/specs/
+fondue/specs/
   <spec>/
     current-state.txt, roster.md, 99-user.md, stats.md     (engine)
     landed.md
@@ -95,7 +95,7 @@ Not a stage: the way out of `plan` or `implementation` when the approved approac
 
 1. **Evidence.** The role that hits it, whichever it is, writes `reopen.md` at the spec root and replies BLOCKED, naming it in the reply's sentence. The file holds the RESULT, the `plan.md` lines of every decision the RESULT breaks, and the state it was found in. A Coder leaves the tree at its last green commit. A BLOCKED with no `reopen.md` is an ordinary BLOCKED.
 2. **Ruling.** The User reopens, abandons the spec (engine: abandoned), or rules the problem local and names who fixes it. Not every broken task breaks the approach.
-3. **The move.** On a reopen, the Arbiter moves `pre-plan/`, `plan/`, `review/` and `reopen.md` into the next `attempts/NN/`, removes the handles of the Architect and the Architecture Reviewer from `roster.md`, commits `ensemble/specs/<spec>/` and sets `brief`. `roster.md`, `99-user.md`, `stats.md` and `landed.md` stay at the root: they span attempts.
+3. **The move.** On a reopen, the Arbiter moves `pre-plan/`, `plan/`, `review/` and `reopen.md` into the next `attempts/NN/`, removes the handles of the Architect and the Architecture Reviewer from `roster.md`, commits `fondue/specs/<spec>/` and sets `brief`. `roster.md`, `99-user.md`, `stats.md` and `landed.md` stay at the root: they span attempts.
 4. **The brief.** The User writes a new `pre-plan/00-brief.md`. It may start from the previous one, and it says whether the goal has changed.
 5. **The new pair.** A fresh Architect and a fresh Architecture Reviewer. Why: the pair that designed and approved the failed frame is the pair most anchored to it.
 6. **What they read.** Every attempt's `plan/plan.md` and `reopen.md`: what was planned, and why it failed. The Architect also reads `landed.md`, for the Landed work section. The research files of earlier attempts are a source: a FACT carried forward is restated in the new research with its origin, and a RESULT about the mechanism that failed is re-run. Drafts, reviews and phase files of earlier attempts are never read. Why: they argue for the frame that failed, while `plan.md` states it and `reopen.md` states what broke it.

@@ -49,7 +49,7 @@ By path, as the contract's default: the spawn prompt says `Read <skill dir>/SKIL
 Decide both when the roster is written. Otherwise the role's first turn fails and comes back as BLOCKED.
 
 ## Model and effort
-`-m <model>` on Start and Turn. Effort: `-c model_reasoning_effort='"<effort>"'`. ensemble's five levels map one to one: `low`, `medium`, `high`, `xhigh`, `max`. Each returned a reply on `gpt-5.6-sol` (0.155.0-alpha.9.2). The model also accepts `none` and `minimal`.
+`-m <model>` on Start and Turn. Effort: `-c model_reasoning_effort='"<effort>"'`. fondue's five levels map one to one: `low`, `medium`, `high`, `xhigh`, `max`. Each returned a reply on `gpt-5.6-sol` (0.155.0-alpha.9.2). The model also accepts `none` and `minimal`.
 
 An unsupported value fails the turn with HTTP 400 and lists the supported ones: `Supported values are: 'none', 'minimal', 'low', 'medium', 'high', 'xhigh', and 'max'.` The run header echoes whatever value was set, even an invalid one, so the header is not evidence that a value is accepted. Supported values depend on the model, so re-check them when the model changes.
 

@@ -1,4 +1,4 @@
-<h1 align="center">ensemble</h1>
+<h1 align="center">fondue</h1>
 
 <p align="center">
   <b>A team of AI agents that plan, build and review each other's work, with you as the team lead.</b><br>
@@ -11,30 +11,33 @@
   <img alt="Status: early" src="https://img.shields.io/badge/status-early-orange">
 </p>
 
-Coding with AI is easy to start and hard to get right. ensemble makes it easier by giving you a
+Coding with AI is easy to start and hard to get right. fondue makes it easier by giving you a
 team: agents that plan, build and review each other's work until it holds up. It's about
 **quality**, and **you're the team lead**. You set the goal, pick the team, and have the final
 word. Give it a try :)
 
-> ⭐ ensemble is free, and so is a GitHub star. You're one click away from making my day!
+Why fondue? One shared pot, and everyone brings their own fork. The spec folder is the pot, and
+every role dips in with a session of its own, on whichever agent you seat.
+
+> ⭐ fondue is free, and so is a GitHub star. You're one click away from making my day!
 
 ## 🚀 Quick start
 
 ```
-/plugin marketplace add jsobolewski1/ensemble
-/plugin install ensemble@ensemble
+/plugin marketplace add jsobolewski1/fondue
+/plugin install fondue@fondue
 ```
 
 1. **Restart Claude Code.** Agent types load at session start.
-2. **Open your project** and run `/ensemble:converge start a spec called <name>`.
+2. **Open your project** and run `/fondue:converge start a spec called <name>`.
 3. **Write the brief** when the Arbiter asks for it, and lead the team from there.
 
-For a bug, use `/ensemble:converge-bug` instead. To try a local checkout without installing:
-`claude --plugin-dir /path/to/ensemble`.
+For a bug, use `/fondue:converge-bug` instead. To try a local checkout without installing:
+`claude --plugin-dir /path/to/fondue`.
 
 ## ✨ What makes it different
 
-Spec-driven tools mostly agree on the stages: spec, plan, tasks, code. **ensemble is about what
+Spec-driven tools mostly agree on the stages: spec, plan, tasks, code. **fondue is about what
 happens between them.**
 
 - 👥 **Every role is its own session, on any vendor.** Architect, reviewer, coder: each is a separate
@@ -53,7 +56,7 @@ happens between them.**
 
 ## 🧪 Status
 
-ensemble is young. Here's what it has actually run:
+fondue is young. Here's what it has actually run:
 
 | | |
 |---|---|
@@ -162,10 +165,10 @@ Proposed solution: add `app.cluster.bind-address`. [...]
   spots than of someone else's.
 - **First-run setup.** The first time you start a spec, the Arbiter **finds the agents on your
   machine**, sets up the ones you pick, and checks that each can keep a session across turns.
-  Adapters live in `~/.config/ensemble/integrations/agents/`.
+  Adapters live in `~/.config/fondue/integrations/agents/`.
 - **Bring your own agent.** A **Codex** adapter ships with the plugin. The contract for writing your
   own is in [`integrations/agents/contract.md`](integrations/agents/contract.md).
-- **Bring your own rules.** Your coding rules and project skills aren't part of ensemble. Name them
+- **Bring your own rules.** Your coding rules and project skills aren't part of fondue. Name them
   per role, and every role loads them.
 
 ## 📁 The spec folder
@@ -173,16 +176,16 @@ Proposed solution: add `app.cluster.bind-address`. [...]
 Everything is **plain files in your repository**, which you can read, diff and review:
 
 ```
-ensemble/specs/017-<name>/        (a real spec, at done)
+fondue/specs/017-<name>/        (a real spec, at done)
   roster.md  99-user.md  stats.md  current-state.txt
   pre-plan/  00-brief.md  01-research.md  02-reviewer-research.md  03-draft.md  04-draft.md
   plan/      plan.md  phase-01.md … phase-04.md
   review/    pre-plan/  plan/  phase-01/ … phase-04/     00-request.md  01-review.md  02-answer.md …
 ```
 
-- Bugs live in `ensemble/bugs/<bug>/`.
-- Finished work is archived under `ensemble/specs/archive/` and `ensemble/bugs/archive/`.
-- **Don't want it in git?** Ignore `ensemble/`. The process detects that and skips its own commits.
+- Bugs live in `fondue/bugs/<bug>/`.
+- Finished work is archived under `fondue/specs/archive/` and `fondue/bugs/archive/`.
+- **Don't want it in git?** Ignore `fondue/`. The process detects that and skips its own commits.
 
 ## 💰 Cost
 

@@ -1,6 +1,6 @@
 ---
 name: converge-bug
-description: "Bug-hunting sibling of converge: two actors, a Hunter and a Reviewer, take one bug from the User's report to a verified fix - reproduce, find the root cause, fix, prove the fix. Use whenever a bug is started, continued or reviewed. Bugs live in ensemble/bugs/<bug>/; ensemble/specs/ holds converge specs. Read ensemble/bugs/<bug>/current-state.txt first; ensemble/bugs/archive/ is history, never current truth."
+description: "Bug-hunting sibling of converge: two actors, a Hunter and a Reviewer, take one bug from the User's report to a verified fix - reproduce, find the root cause, fix, prove the fix. Use whenever a bug is started, continued or reviewed. Bugs live in fondue/bugs/<bug>/; fondue/specs/ holds converge specs. Read fondue/bugs/<bug>/current-state.txt first; fondue/bugs/archive/ is history, never current truth."
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
@@ -12,7 +12,7 @@ metadata:
 
 A bug goes from the User's report to a fix proven against its cause, through fixed stages.
 
-**This skill runs on the ensemble engine.** Read `protocol/engine.md` at the plugin root,
+**This skill runs on the fondue engine.** Read `protocol/engine.md` at the plugin root,
 `../../protocol/engine.md` from this skill's directory, before anything below. The engine holds
 state, turns, replies, rulings, review, and commits. This skill fills in the engine's hooks: stages,
 roles, artifacts, transitions, the turn table, and what counts as a Blocker.
@@ -32,7 +32,7 @@ feature branch in their own commit.
 
 ## Glossary
 The engine's glossary holds, with these additions:
-* **Spec** - here, one bug. **Kind** - `bugs`: a bug's folder is `ensemble/bugs/<bug>/`.
+* **Spec** - here, one bug. **Kind** - `bugs`: a bug's folder is `fondue/bugs/<bug>/`.
 * **Stage** - one of `report`, `hunt`, `fix`, then the engine's `done` or `abandoned`.
 * **Role** - the engine's User and Arbiter, and Hunter and Reviewer.
 * **Topic** - `hunt` or `fix`. The author of both is the Hunter, and the reviewer of both the Reviewer.
@@ -41,7 +41,7 @@ The engine's glossary holds, with these additions:
 
 ## Folder layout
 ```
-ensemble/bugs/
+fondue/bugs/
   <bug>/
     current-state.txt, roster.md, 99-user.md, stats.md     (engine)
     report.md

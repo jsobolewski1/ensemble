@@ -1,16 +1,16 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "ensemble",
-  "description": "ensemble: a team of AI agents that plan, build and review each other's work, with you as the team lead.",
+  "name": "fondue",
+  "description": "fondue: a team of AI agents that plan, build and review each other's work, with you as the team lead.",
   "owner": {
     "name": "Jakub Sobolewski"
   },
   "plugins": [
     {
-      "name": "ensemble",
+      "name": "fondue",
       "description": "A team of AI agents that plan, build and review each other's work, with you as the team lead. Spec-driven development and bug hunting for Claude Code. Mix Claude, Codex and other agents in one team.",
       "source": "./",
-      "homepage": "https://github.com/jsobolewski1/ensemble",
+      "homepage": "https://github.com/jsobolewski1/fondue",
       "category": "development"
     }
   ]

@@ -1,4 +1,4 @@
-# engine - the machinery every ensemble process runs on
+# engine - the machinery every fondue process runs on
 
 A **process skill** takes one unit of work through fixed stages, with AI sessions in roles that review each other's work. `converge` (a feature) and `converge-bug` (a bug) are process skills. This file is what they share: state, turns, replies, rulings, review, and commits. A process skill defines only what differs, the hooks listed at the end, and says so in its own words.
 
@@ -9,7 +9,7 @@ Why a shared engine: when one skill borrowed the other's machinery by reference,
 ## Glossary
 Every term below is used in this meaning only. A process skill adds its own terms.
 
-* **Spec** - one unit of work, whatever the process: a feature, a bug. Its folder is `ensemble/<kind>/<spec>/` at the project root, where the process skill names `<kind>`, e.g. `specs` or `bugs`.
+* **Spec** - one unit of work, whatever the process: a feature, a bug. Its folder is `fondue/<kind>/<spec>/` at the project root, where the process skill names `<kind>`, e.g. `specs` or `bugs`.
 * **Stage** - a named part of the process. The process skill lists its stages. `done` and `abandoned` end every process.
 * **Step** - whose turn it is inside a reviewed stage: `Draft` (the author produces the work), `Review` (the reviewer writes findings), `Answer` (the author answers them).
 * **Role** - User (human), Arbiter, and the roles the process skill defines.
@@ -26,7 +26,7 @@ Every term below is used in this meaning only. A process skill adds its own term
 
 ## The spec folder
 ```
-ensemble/<kind>/
+fondue/<kind>/
   <spec>/
     current-state.txt
     roster.md
@@ -38,7 +38,7 @@ ensemble/<kind>/
   archive/
     <spec>/
 ```
-`ensemble/<kind>/archive/` is history, never current truth.
+`fondue/<kind>/archive/` is history, never current truth.
 
 ## Starting a spec
 The User opens a session, loads a process skill and asks it to start a spec. That session is the Arbiter. In this order, it:
@@ -76,7 +76,7 @@ The Arbiter picks the next state from the reply line alone and never opens the a
 ### roster.md
 The process skill, then the agent, model and effort of each role, the skills of each role, and the handle of each spawned role.
 ```
-Skill: ensemble:converge
+Skill: fondue:converge
 Arbiter: opus, high
 Architect: fable, high | agent a3c99aa3cf5f0bd4a
 Architecture Reviewer: codex gpt-5.6-sol, xhigh | session 01a0bf4c-f5ae-7851-81d7-13355d6fae9a
@@ -86,7 +86,7 @@ Skills:
   all: <skill>, <skill>
   Coder, Code Reviewer: <skill>
 ```
-For a Claude role the model is the spawn call's name: `sonnet`, `opus`, `haiku` or `fable`. A role on another agent is written `<agent> <model>`, where `<agent>` names its adapter in `~/.config/ensemble/integrations/agents/`. Effort is one of `low`, `medium`, `high`, `xhigh`, `max`. The `Skill:` line tells a new Arbiter session, or a role, which process the spec runs.
+For a Claude role the model is the spawn call's name: `sonnet`, `opus`, `haiku` or `fable`. A role on another agent is written `<agent> <model>`, where `<agent>` names its adapter in `~/.config/fondue/integrations/agents/`. Effort is one of `low`, `medium`, `high`, `xhigh`, `max`. The `Skill:` line tells a new Arbiter session, or a role, which process the spec runs.
 
 The Arbiter adds the handle when it spawns a role, `| agent <id>` for Claude and `| session <handle>` for an adapter, and replaces it when it spawns a new session for the role. The handle is how it sends the role later turns and finds its figures for `stats.md`.
 
@@ -117,7 +117,7 @@ A claim about **a mechanism the spec does not control** must be a RESULT, e.g. h
 Once a FACT is recorded, no other role researches the same question again. A RESULT may be re-run if it is non-deterministic or expected to have changed.
 
 ## Code turns
-A role that writes code commits it during its turns and never stages `ensemble/`. It runs the full build with tests at the end of **every** turn that changed code, Draft and Answer alike. A turn is not DONE until the build is green with all tests passing. An answer that only challenges or declines changes no code and reports the last green build.
+A role that writes code commits it during its turns and never stages `fondue/`. It runs the full build with tests at the end of **every** turn that changed code, Draft and Answer alike. A turn is not DONE until the build is green with all tests passing. An answer that only challenges or declines changes no code and reports the last green build.
 
 That run is the only build of the topic: the request and every answer report it, and it is trusted as reported. A gate that the build does not run, such as a live check, is run on the same turns and reported the same way.
 
@@ -215,17 +215,17 @@ A role exchanges messages with the Arbiter only, never with another role, and ne
 ### Starting a role
 The Arbiter spawns each role right before its first turn, and again whenever the process skill calls for a fresh session.
 
-**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: ensemble:converge-<effort>` and `model: <model>`, both from the role's `roster.md` line. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
+**On Claude**, it uses the Agent tool with `run_in_background: true`, `subagent_type: fondue:converge-<effort>` and `model: <model>`, both from the role's `roster.md` line. It records the agent id in `roster.md` and sends every later turn to that id with SendMessage (load it with ToolSearch if it is deferred). The Agent tool always creates a new session, so it is never used to send a turn. The role starts with an empty context. It dies with the Arbiter session. Re-spawning it is cheap, because everything it knew is on disk and `current-state.txt` tells it where the spec is.
 
-The spawn call has no effort parameter: effort comes only from the agent definition. So the five agent types `ensemble:converge-{low,medium,high,xhigh,max}` must exist before the Arbiter session starts, because agent types load at session start. The ensemble plugin ships them, for every process skill. Each definition sets only `effort`, and the model passed on the spawn call overrides the definition's. If a type is missing, the Arbiter stops and tells the User. It never spawns at a different effort.
+The spawn call has no effort parameter: effort comes only from the agent definition. So the five agent types `fondue:converge-{low,medium,high,xhigh,max}` must exist before the Arbiter session starts, because agent types load at session start. The fondue plugin ships them, for every process skill. Each definition sets only `effort`, and the model passed on the spawn call overrides the definition's. If a type is missing, the Arbiter stops and tells the User. It never spawns at a different effort.
 
 The spawn prompt is the role's first turn:
 ```
-Load the ensemble:<process skill> skill. Your role is <role>. Spec: <path to spec folder>. Your turn.
+Load the fondue:<process skill> skill. Your role is <role>. Spec: <path to spec folder>. Your turn.
 ```
 The role loads the process skill, this file, and the skills `roster.md` gives it, then takes the turn like any other.
 
-**On another agent**, the role is started and sent its turns through its adapter's Start and Turn, as `integrations/agents/contract.md` says. Its prompt names each skill by path, `Read <skill dir>/SKILL.md and follow it as the <name> skill.`, because no other agent can load a Claude Code plugin's skills. The Arbiter knows the directory of each ensemble skill, since they sit together under the plugin's `skills/`. It does not know where a project or User skill in the roster lives, so it asks the User once and records the path in the roster's Skills block.
+**On another agent**, the role is started and sent its turns through its adapter's Start and Turn, as `integrations/agents/contract.md` says. Its prompt names each skill by path, `Read <skill dir>/SKILL.md and follow it as the <name> skill.`, because no other agent can load a Claude Code plugin's skills. The Arbiter knows the directory of each fondue skill, since they sit together under the plugin's `skills/`. It does not know where a project or User skill in the roster lives, so it asks the User once and records the path in the roster's Skills block.
 
 ### A turn
 ```
@@ -245,7 +245,7 @@ DONE <state> | wrote <paths> | <verdict> | <counts>
 CONFLICT <state> | wrote <paths> | thread <file>#<id> deadlocked | positions in <every review and answer file on the thread>
 BLOCKED <state> | <what is missing or failing, one sentence>
 ```
-* `<paths>` are relative to the repository root, e.g. `ensemble/specs/json-top/review/phase-01/00-request.md`.
+* `<paths>` are relative to the repository root, e.g. `fondue/specs/json-top/review/phase-01/00-request.md`.
 * `<state>` is the full line of `current-state.txt` at the start of the turn, e.g. `implementation:01:Draft`.
 * `<verdict>` is the verdict keyword of the artifact just written (`approved`, `approved-with-fixes`, `changes-requested`, `next-round`, `closed`), with its outcome if it has one (e.g. `approved exit`). A turn with no verdict gives `request opened`, or a keyword the process skill defines.
 * `<counts>` for a reviewer: `<n> Blocker, <n> Nit`. For an author's answer: `<n> accepted, <n> challenged, <n> declined`. For a turn with no verdict: `-`. It is a count, not a summary.
@@ -259,7 +259,7 @@ BLOCKED <state> | <what is missing or failing, one sentence>
 The Arbiter does these in order, every time, and nothing else:
 1. append the turn's line to `stats.md`
 2. on DONE, write the next state (Transitions) into `current-state.txt`
-3. do what the process skill attaches to that transition, if anything, and commit `ensemble/<kind>/<spec>/` if the transition is one of its commit points (see Commits); otherwise do not commit
+3. do what the process skill attaches to that transition, if anything, and commit `fondue/<kind>/<spec>/` if the transition is one of its commit points (see Commits); otherwise do not commit
 4. send `Your turn.` to the role the new state names: by the handle in `roster.md` if it has one and the process skill calls for no fresh session, otherwise spawn it (Starting a role)
 
 A reply whose `<state>` is not the state the Arbiter wrote is not a reply to this turn: the Arbiter skips steps 1-3 and sends `Your turn.` once more. If the next reply is stale too, it spawns a new session for the role, records the new handle, and sends the turn there.
@@ -269,21 +269,21 @@ After a CONFLICT or a BLOCKED, the Arbiter does step 1, then puts the question t
 ## Closing a spec
 
 ### done
-When the process skill's last stage ends, in this order: the Arbiter writes `done` into `current-state.txt`, moves `ensemble/<kind>/<spec>/` to `ensemble/<kind>/archive/<spec>/`, then commits. The archived state must read `done`.
+When the process skill's last stage ends, in this order: the Arbiter writes `done` into `current-state.txt`, moves `fondue/<kind>/<spec>/` to `fondue/<kind>/archive/<spec>/`, then commits. The archived state must read `done`.
 
 ### abandoned
 The end of a spec that will not deliver its goal. The User may abandon a spec in any state. The Arbiter records the ruling in `99-user.md` like any other, and it holds what the archive must say: why the spec stops, and what happens to the work it landed.
 
-Landed work is kept, or reverted outside the spec by the User or by someone the User names. A revert is not reviewed: nobody will build on it. The Arbiter waits until the User says the revert is done. Then, in the order of `done`, it writes `abandoned` into `current-state.txt`, moves the spec to `ensemble/<kind>/archive/<spec>/` and commits. The archived state must read `abandoned`. Why a state of its own: an archived spec that reads `done` tells every later reader that its goal was delivered.
+Landed work is kept, or reverted outside the spec by the User or by someone the User names. A revert is not reviewed: nobody will build on it. The Arbiter waits until the User says the revert is done. Then, in the order of `done`, it writes `abandoned` into `current-state.txt`, moves the spec to `fondue/<kind>/archive/<spec>/` and commits. The archived state must read `abandoned`. Why a state of its own: an archived spec that reads `done` tells every later reader that its goal was delivered.
 
 ## Commits
-* **A role that writes code** commits it during its turns and never stages `ensemble/`.
-* **Arbiter** commits `ensemble/<kind>/<spec>/` at the commit points the process skill names, and once more at `done` or `abandoned`, after the move to the archive.
+* **A role that writes code** commits it during its turns and never stages `fondue/`.
+* **Arbiter** commits `fondue/<kind>/<spec>/` at the commit points the process skill names, and once more at `done` or `abandoned`, after the move to the archive.
 
-A project may keep its specs out of git. If `git check-ignore -q ensemble/<kind>/<spec>/` succeeds, the Arbiter makes none of the spec commits. The check is on the spec folder, because a project may ignore one kind, e.g. `ensemble/bugs/`, and still commit the rest of `ensemble/`. Code commits are unchanged either way. No part of the process may depend on a spec commit.
+A project may keep its specs out of git. If `git check-ignore -q fondue/<kind>/<spec>/` succeeds, the Arbiter makes none of the spec commits. The check is on the spec folder, because a project may ignore one kind, e.g. `fondue/bugs/`, and still commit the rest of `fondue/`. Code commits are unchanged either way. No part of the process may depend on a spec commit.
 
 ## Hooks: what a process skill defines
-* its **kind**: the folder under `ensemble/` its specs live in
+* its **kind**: the folder under `fondue/` its specs live in
 * its **stages**, in order: the first state written at start, which stages carry a qualifier and a Step, and the stage whose end leads to `done`
 * its **roles**: what each does, how long each session lives, when a role gets a fresh session, and who reads and writes each of its artifacts
 * its **folder layout** beyond the spec folder above, and its artifacts
