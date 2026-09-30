@@ -21,6 +21,10 @@ Why fondue? One shared pot, and everyone brings their own fork. The spec folder 
 every role dips in with a session of its own, on whichever agent you seat. And one house rule:
 **no double-dipping.** Nobody reviews their own work.
 
+<p align="center">
+  <img src="assets/fondue-workflow.png" alt="You and the Arbiter exchange the brief and rulings. The Arbiter sends each role only &quot;your turn&quot;. Architect, Architecture Reviewer, Coder, Code Reviewer and Handover Writer each dip their own fork into one shared pot, the spec folder. The Arbiter never touches the pot." width="820">
+</p>
+
 > ⭐ fondue is free, and so is a GitHub star. You're one click away from making my day!
 
 ## 🚀 Quick start
@@ -79,13 +83,9 @@ Earlier specs ran on earlier versions of the protocol. **Issues and war stories 
 
 ## 🏗️ How spec works
 
-```
-brief ─▶ pre-plan ─▶ plan ─▶ implementation ─▶ handover ─▶ done
- you     approach    technical    phase 01 ⇄ review
-         ⇄ review    design       phase 02 ⇄ review …
-                     ⇄ review
-                        ╰──── the approach fails ─▶ new attempt, from a new brief
-```
+<p align="center">
+  <img src="assets/spec-workflow.png" alt="brief (you), then pre-plan (approach, reviewed), plan (technical design, reviewed), implementation (each phase reviewed), handover, done. If the approach fails in plan or implementation, a new attempt starts from a new brief." width="820">
+</p>
 
 | Role | What they do | Lives for |
 |---|---|---|
@@ -112,11 +112,9 @@ brief ─▶ pre-plan ─▶ plan ─▶ implementation ─▶ handover ─▶ d
 Use it for a bug whose cause is **unknown and takes experiments to find**: intermittent,
 distributed, load-dependent. A bug with a stack trace and an obvious fix doesn't need it.
 
-```
-report ─▶ hunt ─▶ fix ─▶ done
- you     diagnosis    red commit, fix
-         ⇄ review     ⇄ review
-```
+<p align="center">
+  <img src="assets/hunt-workflow.png" alt="report (you), then hunt (diagnosis, reviewed), fix (red commit, then the fix, reviewed), done." width="820">
+</p>
 
 - 🕵️ **Hunter:** reproduces, localizes and root-causes the bug. Every step of the chain stands on
   something that was **run, not read**.
