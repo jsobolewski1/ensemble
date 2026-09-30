@@ -66,7 +66,6 @@ fondue is young. Here's what it has actually run:
 | ✅ **hunt** | 1 bug to a verified fix |
 | ✅ **Mixed vendors** | Codex has held the Architecture Reviewer seat in real specs, through an earlier setup |
 | ✅ **First-run agent setup** | Dry-run against Codex |
-| 🧪 **Not yet run end to end** | The shared engine, reopening a failed approach, abandoning a spec, and roles driven through the new agent adapters |
 
 Earlier specs ran on earlier versions of the protocol. **Issues and war stories are welcome.**
 
