@@ -53,9 +53,9 @@ happens between them.**
   opening the draft, so they question the frame, not just its details.
 - 🔍 **Evidence, or it isn't a finding.** Every finding carries a `file:line` or a command and its
   output. Claims about libraries and tools are **run, not read**.
-- ⚖️ **A neutral Arbiter.** The session you talk to only routes turns. It never judges the work, so no
-  author writes the prompt for its own reviewer. It reads the work only when you ask it to, and what
-  it finds reaches the team only through your rulings.
+- ⚖️ **A neutral Arbiter.** The session you talk to runs the process and never rules on the work, so
+  no author writes the prompt for its own reviewer. It reads the work only when you ask, and what it
+  finds reaches the team only through your rulings. Once every review has closed, it writes the handover.
 - 🔁 **Plans are allowed to fail.** A broken approach reopens as a new attempt, which must show that
   it doesn't rest on the assumption that broke.
 - 📊 **Every turn's cost is on the record.** Tokens and minutes, per turn and per role.
@@ -91,8 +91,8 @@ Earlier specs ran on earlier versions of the protocol. **Issues and war stories 
 
 | Role | What they do | Lives for |
 |---|---|---|
-| **You** | Write the brief, pick the team, rule on disagreements | the whole spec |
-| **Arbiter** | Spawns roles, sends turns, keeps state, researches for you on request, writes the handover. Never judges the work | the whole spec |
+| **You** | Write the brief, pick the team, rule on disagreements and questions | the whole spec |
+| **Arbiter** | Spawns roles, sends turns, keeps state, researches for you on request, writes the handover. Never rules on the work | the whole spec |
 | **Architect** | Researches, drafts the approach, then the technical plan | one attempt |
 | **Architecture Reviewer** | Reviews both, after designing their own approach first | one attempt |
 | **Coder** | Implements one phase, leaving the build green on every turn | one phase, or all of them with `Sessions: continue` |

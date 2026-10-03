@@ -43,6 +43,7 @@ By path, as the contract's default: the spawn prompt says `Read <skill dir>/SKIL
 ## Permissions
 `workspace-write` covers the workdir, `/tmp` and `$TMPDIR`. The project's `.git` sits inside the workdir, so commits work.
 * **The sandbox may not survive a resume.** A session started `-s read-only` came back as `sandbox: workspace-write [workdir, /tmp, $TMPDIR]` on an `exec resume` that set nothing (0.154.0-alpha.6.2). On 0.155.0-alpha.9.2 the same resume kept `sandbox: read-only`. Which versions reset it is not known, so every Turn passes `-c sandbox_mode='"<mode>"'` again, together with the settings below, and the Arbiter checks that the resumed run's `sandbox:` header line matches the first run's.
+* **An advisor** starts with `-s read-only` and gets no Turn. The run header reads `sandbox: read-only` (0.155.0-alpha.9.2).
 * A directory outside the workdir, such as a sibling checkout: `--add-dir <dir>` on Start, `-c 'sandbox_workspace_write.writable_roots=["<dir>"]'` on every Turn.
 * Network, e.g. for a build that downloads dependencies: `-c sandbox_workspace_write.network_access=true`, on Start and on every Turn.
 

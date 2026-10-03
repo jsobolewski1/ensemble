@@ -4,7 +4,7 @@ description: "Bug-hunting sibling of spec: two actors, a Hunter and a Reviewer, 
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
-  version: 3
+  version: 4
   status: "young - run end to end on one real bug so far; update in place as runs teach us"
 ---
 
@@ -51,6 +51,8 @@ fondue/bugs/
     review/
       hunt/   00-request.md, 01-review.md, 02-answer.md, ...
       fix/    00-request.md, ...
+    question.md      (engine: User questions)
+    advice/          (engine: Advisors)
   archive/
     <bug>/
 ```
@@ -59,7 +61,7 @@ fondue/bugs/
 The spec starts as the engine's Starting a spec says, with first state `report`.
 
 ### report
-The User writes `report.md`, alone or with AI help. The stage ends when the User signs it off. The
+The User writes `report.md`, the bug's starting document, alone or with AI help. The stage ends when the User signs it off. The
 Arbiter commits and sets `hunt:Draft`.
 
 ### hunt
@@ -131,6 +133,10 @@ R = reads, W = writes (and reads). A role reads nothing in the spec that this ta
 | `hunt/NN-diagnosis.md` | | W | R |
 | `review/hunt/`, `review/fix/` | | W request, answers | W reviews |
 | code | | W | R, and runs the red/green check |
+| `question.md` | moves into a ruling | W | |
+| `advice/` | W | | |
+
+When the User asks, the Arbiter reads anything (engine: Roles every process has).
 
 ## Roles
 The engine's User and Arbiter, and:
