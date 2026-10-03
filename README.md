@@ -53,8 +53,9 @@ happens between them.**
   opening the draft, so they question the frame, not just its details.
 - 🔍 **Evidence, or it isn't a finding.** Every finding carries a `file:line` or a command and its
   output. Claims about libraries and tools are **run, not read**.
-- ⚖️ **A neutral Arbiter.** The session you talk to only routes turns. It never reads or judges the
-  work, so no author writes the prompt for its own reviewer.
+- ⚖️ **A neutral Arbiter.** The session you talk to only routes turns. It never judges the work, so no
+  author writes the prompt for its own reviewer. It reads the work only when you ask it to, and what
+  it finds reaches the team only through your rulings.
 - 🔁 **Plans are allowed to fail.** A broken approach reopens as a new attempt, which must show that
   it doesn't rest on the assumption that broke.
 - 📊 **Every turn's cost is on the record.** Tokens and minutes, per turn and per role.
@@ -91,7 +92,7 @@ Earlier specs ran on earlier versions of the protocol. **Issues and war stories 
 | Role | What they do | Lives for |
 |---|---|---|
 | **You** | Write the brief, pick the team, rule on disagreements | the whole spec |
-| **Arbiter** | Spawns roles, sends turns, keeps state. Never reads the work | the whole spec |
+| **Arbiter** | Spawns roles, sends turns, keeps state, researches for you on request, writes the handover. Never judges the work | the whole spec |
 | **Architect** | Researches, drafts the approach, then the technical plan | one attempt |
 | **Architecture Reviewer** | Reviews both, after designing their own approach first | one attempt |
 | **Coder** | Implements one phase, leaving the build green on every turn | one phase, or all of them with `Sessions: continue` |
@@ -138,7 +139,10 @@ Both skills run on one engine, [`protocol/engine.md`](protocol/engine.md):
   contradicts.
 - **"It doesn't exist" must be shown failing.** An empty search only shows where you didn't look.
 - **Fixed verdicts.** A fix the reviewer can state exactly is approved unseen, which saves a round.
-- **Deadlocks come to you.** You get both positions in files, and your ruling is **binding**.
+- **Deadlocks and questions come to you.** A deadlock gives you both positions in files. A decision
+  that is yours (scope, or a change to an approved plan both sides agree on) comes to you as a question
+  the first time it appears, not rounds later. Ask for advisors on other models if you want a second
+  opinion. Your ruling is **binding**.
 - **Agents share nothing but files.** A message says only whose turn it is.
 
 <details>

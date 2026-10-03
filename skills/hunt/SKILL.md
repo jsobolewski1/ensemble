@@ -38,6 +38,7 @@ The engine's glossary holds, with these additions:
 * **Topic** - `hunt` or `fix`. The author of both is the Hunter, and the reviewer of both the Reviewer.
 * **Subject** - a diagnosis file (`hunt`) or a commit range (`fix`).
 * **Red commit** - the commit that adds the regression check and nothing else. The check fails there.
+* **Approved artifact** - the signed `report.md`, and the diagnosis a closed hunt approved. Changing one is a User question (engine: User questions).
 
 ## Folder layout
 ```

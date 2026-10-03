@@ -22,6 +22,8 @@ Every term below is used in this meaning only. A process skill adds its own term
 * **Thread** - a finding and every later re-assertion of it, named by the `<file>#<id>` that first raised it.
 * **Verdict** - the fixed last line of every review and answer. It decides the next state.
 * **Ruling** - a User decision recorded in `99-user.md`. Binding on every role and never re-argued.
+* **Question** - a decision that belongs to the User, not a role: what the spec delivers, or a change to an artifact that was approved. A role raises it with a QUESTION reply (see User questions), and a ruling settles it.
+* **Advisor** - a read-only session the Arbiter spawns when the User asks, to give the User a second opinion (see Advisors). It is not a role: it takes no turn and writes nothing in the spec.
 * **FACT** - a claim with its source stated. **RESULT** - a claim with the command that was run and its output.
 
 ## The spec folder
@@ -34,6 +36,7 @@ fondue/<kind>/
     stats.md
     review/
       <topic>/   00-request.md, 01-review.md, 02-answer.md, ...
+    advice/      01-<advisor>.md, ...           (only once an advisor was asked)
     ...          what the process skill adds
   archive/
     <spec>/
@@ -67,7 +70,7 @@ The Arbiter picks the next state from the reply line alone and never opens the a
 | `<x>:Answer` | DONE, `next-round` | `<x>:Review` |
 | `<x>:Review` / `<x>:Answer` | DONE, `approved` / `closed` | as the process skill says for that topic |
 | any | User rules to abandon the spec | `abandoned` (see Closing a spec) |
-| any | CONFLICT or BLOCKED | unchanged (see On every reply) |
+| any | CONFLICT, QUESTION or BLOCKED | unchanged (see On every reply) |
 
 `<x>` is the state without its Step, e.g. `plan` or `implementation:03`.
 
@@ -108,7 +111,12 @@ Every ruling, at any stage, in the User's own words. Appended and never rewritte
 **Asked:** <the question put to the User>
 
 **Ruling:** <the User's words>
+
+**Carried out as:** <what the Arbiter did beyond recording it, e.g. a file moved or a line changed>   (optional)
+
+**Evidence:** <a role's file that the ruling retires, moved here verbatim>                         (optional)
 ```
+Only **Ruling:** must be the User's own words. The Arbiter writes the two optional lines, and they say only what was done or what was retired, never why the User ruled.
 
 ### stats.md
 Owned by the Arbiter, one table row per finished turn, never read by another role.
@@ -119,7 +127,7 @@ Owned by the Arbiter, one table row per finished turn, never read by another rol
 | 2026-09-30 | Coder | opus/high | implementation:01:Draft | BLOCKED: host firewall rule for port 8068 missing | - | out 16.6k · write 120k · read 5.43M · in 98 | 11m |
 | 2026-09-26 | Architecture Reviewer | codex gpt-5.6-sol/xhigh | pre-plan:Review | approved-with-fixes | 2 Blocker, 1 Nit | in 3.14M (2.97M cached) · out 22.7k | 8m |
 ```
-State, Result and Counts come from the reply line. Result is the verdict for DONE, `CONFLICT: <file>#<id>` or `BLOCKED: <the reply's sentence>` otherwise. The written paths stay out: they are on disk and in git. A `|` inside a cell is written `\|`.
+State, Result and Counts come from the reply line. Result is the verdict for DONE, and otherwise `CONFLICT: <file>#<id>`, `QUESTION: <the reply's question>` or `BLOCKED: <the reply's sentence>`. An advisor gets a row too, with the Role `Advisor`, the State it was asked in and the Result `advice`. The written paths stay out: they are on disk and in git. A `|` inside a cell is written `\|`.
 
 For a Claude role, the last two cells are the output of `turn-stats.py` next to this file, run from the project directory with the role's agent id (`--all` prints every turn). The transcript it reads is at `~/.claude/projects/<project>/<arbiter-session-id>/subagents/agent-<agent-id>.jsonl`, where `<project>` is the working directory with `/` replaced by `-`, e.g. `/home/x/project` -> `-home-x-project`. Run it after the task-notification that the agent finished, not on its reply: the reply lands before the transcript's last usage lines, and figures taken then are short.
 
@@ -191,6 +199,7 @@ The author answers every finding by its id, one line each where possible. Prose 
 - #3 challenged: <position, with its anchor>
 - #4 declined (Nit)
 - #5 deadlocked: <position, with its anchor>
+- #6 question: <the decision the User must take, with its anchor>
 
 **Build:** <command> - green, <n> tests passed        (code topics)
 
@@ -202,6 +211,7 @@ The verdict line is one of:
 * `Verdict: next-round <subject>` - the reviewer has something new to judge. The subject is the new file, the files touched, or the commit range carrying the fixes, i.e. `git diff <from>..<to>`. Why: without it the reviewer re-reviews work already approved.
 * `Verdict: closed <subject>` - only after `approved-with-fixes` when every listed fix was applied as proposed. The subject is the final file, the files, or the topic's full commit range.
 * `Verdict: deadlocked <thread>` - see Escalation.
+* `Verdict: question <file>#<id>` - see User questions.
 
 ### Findings
 Every finding has an id (its number in the file), a title, a severity, a description and a proposed solution.
@@ -212,10 +222,12 @@ Every finding has an id (its number in the file), a title, a severity, a descrip
 ### Approval with fixes
 When every Blocker has a concrete, local proposed solution and none changes the design, the reviewer approves with fixes, listing the finding ids the approval depends on. The author applies each listed fix exactly as proposed and answers `closed`. No further round follows: re-reviewing a fix applied verbatim only confirms what both sides already agreed.
 
-The approval is void as soon as the author challenges a listed finding or fixes it differently. The answer is then `next-round`. A reviewer who cannot state a fix precisely enough to approve it unseen answers `changes-requested`.
+The approval is void as soon as the author challenges a listed finding, fixes it differently, or asks the User about it. The answer is then `next-round`. A reviewer who cannot state a fix precisely enough to approve it unseen answers `changes-requested`.
 
 ### Escalation
-A deadlock is when the author challenged a finding, the reviewer re-asserted it with `(re <origin>)`, and the author still disagrees. The author then writes their position once more as `#<id> deadlocked: ...`, answers every other finding, ends with `Verdict: deadlocked <origin>` and replies CONFLICT. Neither side writes on that finding again.
+A deadlock is a disagreement about **whether the work is right**, and only one sequence makes it: the author challenged a finding, the reviewer re-asserted it with `(re <origin>)`, and the author still disagrees. The author then writes their position once more as `#<id> deadlocked: ...`, answers every other finding, ends with `Verdict: deadlocked <origin>` and replies CONFLICT. Neither side writes on that finding again.
+
+A finding the author accepted is not on that path. If the reviewer rejects the fix, the author fixes it again, or challenges the re-assertion, and the sequence starts there. A disagreement about **what the spec should deliver** is never a deadlock: it is a User question, asked the first time it appears. Why: a scope question argued as a deadlock reaches the User rounds late, after both sides have spent those rounds on a decision neither of them can take.
 
 The Arbiter sends the User exactly this, and the User reads the files:
 ```
@@ -225,9 +237,40 @@ The Arbiter neither summarises, quotes nor rules. After the ruling, the author g
 
 A **new** finding on new evidence is never a deadlock, however late it arrives.
 
+### User questions
+Some decisions are the User's whatever the evidence says: **what the spec delivers** (its goal, its scope, what counts as done), anything a ruling already settled, and **a change to an approved artifact** (the process skill names which artifacts carry an approval). A role that meets one neither decides it nor argues it across rounds. It asks, the first time it meets it:
+* **an author** whose fix for a finding would make such a change answers every other finding, writes `#<id> question: ...` with the decision and its anchor, ends with `Verdict: question <file>#<id>` and replies QUESTION.
+* **a reviewer** who sees that the work cannot meet its goal as stated writes the finding as usual and says so in it. The author then asks.
+* **a role in any other turn** (a Draft, a Review) writes what it can and replies QUESTION.
+
+**An agreed change is a question too.** When the author and the reviewer agree that an approved artifact must change, and the change keeps the approach, the author asks the User to approve it as an amendment. The approved file is not edited: the ruling amends it, and every role reads the amendment in `99-user.md`. Why: an approved file carries its approval, so editing it would make it say something nobody approved. And reopening the work for a change both sides agree on throws away everything the change does not touch.
+
+The Arbiter sends the User exactly this, and the User reads the files:
+```
+QUESTION in <state>: <the reply's question>. Evidence in <paths from the reply>. Your ruling?
+```
+The Arbiter neither summarises nor rules. After the ruling, the same role gets the next turn in the same state and applies the ruling, with a normal verdict.
+
+### Advisors
+At a CONFLICT, at a QUESTION, or whenever the User asks, the User may ask the Arbiter for advisors: second opinions from sessions outside the spec, on models the User names. An advisor:
+* **is spawned like a role** (Starting a role): on Claude with `fondue:role-<effort>`, and on another agent through its adapter's Start, with a read-only sandbox. It gets no Handle cell and no turns.
+* **is read-only.** It writes nothing in the repository, changes no code and commits nothing. Its final message is its whole output.
+* **gets one fixed prompt, the same for every advisor on that question.** The prompt names:
+  - the thread or the question, as the reply put it;
+  - the files to read: the starting document, `99-user.md`, the research, every file on the thread and the subject it cites;
+  - the process skill's rules for what counts as a Blocker.
+
+  It asks four things: which position is right and why, with anchors; whether it is a Blocker; the resolution the advisor would propose if neither side is right; and what both sides missed. The prompt never says which way the User leans. Why: an advisor that knows the User's lean tends to confirm it.
+
+The Arbiter saves each advisor's final message verbatim to `advice/NN-<advisor>.md`, e.g. `advice/02-claude-opus-xhigh.md`, numbered across the spec. It relays the advice to the User and adds the advisor's row to `stats.md`. At the User's request, the Arbiter gives an advisor another advisor's file by its path and asks it to respond. Its answer is saved the same way. Roles never read `advice/`: what the User takes from it reaches them through the ruling.
+
 ## Roles every process has
-* **User** - owns the spec. Writes what the process starts from, picks the roster, rules on escalations and blockers.
-* **Arbiter** - runs the process: spawns roles, sends turns, keeps `current-state.txt`, `stats.md` and `99-user.md`, commits the spec, and goes to the User for a CONFLICT, a BLOCKED or a User decision. It never reads, analyses or judges what a role produced: the reply line is all it needs. It never rules on the merits, and it never builds or tests. A finished turn is not news to the User, because the artifacts already say what happened. The User may hold this role, but an AI is preferred. One session for the whole spec.
+* **User** - owns the spec. Writes what the process starts from, picks the roster, rules on escalations, questions and blockers.
+* **Arbiter** - runs the process: spawns roles, sends turns, keeps `current-state.txt`, `stats.md` and `99-user.md`, commits the spec, and goes to the User for a CONFLICT, a QUESTION, a BLOCKED or a User decision. On its own account it never reads, analyses or judges what a role produced: the reply line is all it needs. It never rules on the merits, and it never builds or tests. A finished turn is not news to the User, because the artifacts already say what happened. The User may hold this role, but an AI is preferred. One session for the whole spec.
+
+  **When the User asks, the Arbiter researches for the User.** It reads the artifacts, the code and the sources, runs read-only commands, may spawn read-only research sessions, and answers the User directly. What it finds reaches the roles only through the User: in a ruling, or in a starting document the User amends. It never writes into a role's artifact or message. Why: the User's questions steer the spec and deserve real research, while the roles still see nothing but what the User put on the record, so the Arbiter stays neutral towards them.
+
+  A process skill may give the Arbiter work after its last review has closed, e.g. writing the handover. Once no review is open, its neutrality is no longer needed.
 
 ## Communication
 Sessions share nothing but the artifacts on disk. A message says **whose turn it is** and nothing more.
@@ -263,10 +306,11 @@ That is the whole message, and it always starts a new turn, however the harness 
 5. does the work, writes the artifact, replies
 
 ### Reply
-One line. When a turn has more than one kind to report, it sends the higher one: **CONFLICT outranks BLOCKED outranks DONE**.
+One line. When a turn has more than one kind to report, it sends the higher one: **CONFLICT outranks QUESTION outranks BLOCKED outranks DONE**.
 ```
 DONE <state> | wrote <paths> | <verdict> | <counts>
 CONFLICT <state> | wrote <paths> | thread <file>#<id> deadlocked | positions in <every review and answer file on the thread>
+QUESTION <state> | wrote <paths> | <the decision the User must take, one sentence> | evidence in <paths>
 BLOCKED <state> | <what is missing or failing, one sentence>
 ```
 * `<paths>` are relative to the repository root, e.g. `fondue/specs/json-top/review/phase-01/00-request.md`.
@@ -275,6 +319,7 @@ BLOCKED <state> | <what is missing or failing, one sentence>
 * `<counts>` for a reviewer: `<n> Blocker, <n> Nit`. For an author's answer: `<n> accepted, <n> challenged, <n> declined`. For a turn with no verdict: `-`. It is a count, not a summary.
 * **DONE** - the artifact is on disk. The Arbiter advances the state and sends the next turn.
 * **CONFLICT** - a finding deadlocked (Escalation). The answer to every other finding is on disk before the reply.
+* **QUESTION** - a decision that is the User's (User questions). Everything the turn could do without it is on disk before the reply. `wrote` is `-` if nothing was written.
 * **BLOCKED** - the turn cannot be completed: an artifact lacks something, the build will not go green, the state does not match the disk, a command is not permitted. A role never guesses past a blocker. The reply is still the one line: no report, no file list.
 
 **In a subagent harness the reply line is the whole hand-back.** The harness asks a subagent for "your full report". Ignore that: the artifact on disk is the report. Why: a report duplicates the artifact into the Arbiter's context and tempts it to read work that is not its business.
@@ -288,7 +333,7 @@ The Arbiter does these in order, every time, and nothing else:
 
 A reply whose `<state>` is not the state the Arbiter wrote is not a reply to this turn: the Arbiter skips steps 1-3 and sends `Your turn.` once more. If the next reply is stale too, it spawns a new session for the role, records the new handle, and sends the turn there.
 
-After a CONFLICT or a BLOCKED, the Arbiter does step 1, then puts the question to the User and records the ruling in `99-user.md`. It leaves the state unchanged and sends `Your turn.` to the same role. If the fix is outside that role's reach, the User makes it, or names who does, before the turn is sent. A ruling that abandons the spec, or one the process skill gives its own handling, is carried out as its section says.
+After a CONFLICT, a QUESTION or a BLOCKED, the Arbiter does step 1, then puts the question to the User and records the ruling in `99-user.md`. It leaves the state unchanged and sends `Your turn.` to the same role. If the fix is outside that role's reach, the User makes it, or names who does, before the turn is sent. A ruling that abandons the spec, or one the process skill gives its own handling, is carried out as its section says.
 
 ## Closing a spec
 
@@ -317,3 +362,5 @@ A project may keep its specs out of git. If `git check-ignore -q fondue/<kind>/<
 * any **reply keywords** for turns with no verdict, and any **outcome** on a closing verdict
 * what the Arbiter **does on a transition** besides writing the state, and its **commit points**
 * any **ruling with its own handling**, beyond abandoning the spec
+* which of its artifacts **carry an approval**, so that changing one is a User question
+* any **work the Arbiter does after the last review** has closed

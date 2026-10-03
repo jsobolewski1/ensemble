@@ -4,7 +4,7 @@ description: "Specification-driven multi-model software development protocol. Us
 license: MIT
 metadata:
   owner: "Jakub Sobolewski"
-  version: 5
+  version: 6
   status: "living doc — update in place when the workflow changes"
 ---
 
@@ -20,9 +20,10 @@ The engine's glossary holds, with these additions:
 * **Kind** - `specs`: a spec's folder is `fondue/specs/<spec>/`.
 * **Stage** - one of `brief`, `pre-plan`, `plan`, `implementation`, `handover`, then the engine's `done` or `abandoned`.
 * **Phase** - one numbered part of the implementation. `NN` is always two digits, from `01`.
-* **Role** - the engine's User and Arbiter, and Architect, Architecture Reviewer, Coder, Code Reviewer. An ad-hoc Handover Writer is not a roster role.
+* **Role** - the engine's User and Arbiter, and Architect, Architecture Reviewer, Coder, Code Reviewer. A Handover Writer, spawned only when the User names one, is not a roster role.
 * **Topic** - `pre-plan` and `plan`, whose author is the Architect and whose reviewer is the Architecture Reviewer, and `phase-NN`, whose author is the Coder and whose reviewer is the Code Reviewer.
 * **Attempt** - one approach to the spec's goal, from brief to its end: `pre-plan/`, `plan/` and `review/`. The live attempt sits at the spec root. A failed one is moved to `attempts/NN/` (see Reopening).
+* **Approved artifact** - the signed brief, `plan/plan.md`, and each `plan/phase-NN.md` once plan has closed. Changing one is a User question (engine: User questions).
 
 ## Folder layout
 ```
@@ -46,6 +47,7 @@ fondue/specs/
     handover/
       00-request.md, 01-request.md, ...
     reopen.md                  (only while a reopen is pending)
+    advice/                    (engine: Advisors)
     attempts/                  (only after a reopen)
       01/
         pre-plan/  plan/  review/  reopen.md
@@ -58,6 +60,10 @@ The spec starts as the engine's Starting a spec says, with first state `brief`.
 
 ### brief
 User writes `pre-plan/00-brief.md`, alone or with any AI help they choose. The stage ends when the User tells the Arbiter the brief is signed off. The Arbiter commits and sets `pre-plan:Draft`.
+
+At sign-off the Arbiter checks one thing: **a light brief has no open question** except ones marked `(technical)`. That is a mechanical check, not a judgement: the Arbiter tells the User when it fails, and the User changes the mode or the brief. Why: an open question that shapes the approach means the design is not settled, and light mode reviews the approach and the tasks in one round, so the reviewer spends that round on the mode.
+
+**Amending the brief.** A ruling may change a signed brief later: its goal, its scope or its mode. The User edits it, or the Arbiter does in the User's words, and a line under the title says `Amended <date>: <what changed>; ruling in 99-user.md`. The User signs off the change, and the Arbiter commits it. The turn in progress continues and applies the amended brief. When the change takes the frame away from the drafts written so far, the User may restart the attempt instead (see Reopening).
 
 ### pre-plan
 Pre-plan settles **how the goal is reached**: the approach, the decisions that shape it, and the phases with the gate each must pass. The technical decisions inside each phase belong to plan.
@@ -81,7 +87,7 @@ Plan turns each phase of the approved approach into technical decisions and task
 
 Plan may not change the approach. A plan-stage RESULT that shows the approach cannot work leads to Reopening.
 
-**Light mode.** Light mode is for a spec whose design is settled and whose work is mechanical (a refactor, a move, a rename). The brief opts in with `Mode: light`. The final draft already carries each phase's tasks and gate: in mechanical work the tasks are the approach, and it is the one case where a draft carries them. Architect copies it to `plan.md`, splits its phases verbatim into `phase-NN.md` files, writes no `research.md` and opens no review. Nothing new was written, so there is nothing to review and the stage closes on that turn. Without the line, the spec runs in full mode.
+**Light mode.** Light mode is for a spec whose design is settled and whose work is mechanical (a refactor, a move, a rename). The brief opts in with `Mode: light`, and has no open question that shapes the approach (see brief). The final draft already carries each phase's tasks and gate: in mechanical work the tasks are the approach, and it is the one case where a draft carries them. Architect copies it to `plan.md`, splits its phases verbatim into `phase-NN.md` files, writes no `research.md` and opens no review. Nothing new was written, so there is nothing to review and the stage closes on that turn. Without the line, the spec runs in full mode.
 
 ### implementation
 How long a Coder and a Code Reviewer live is the roster's **Sessions:**. With `fresh`, the default, every phase gets a new Coder and a new Code Reviewer: the Arbiter spawns each of them before its first turn and sends it no more turns once the phase closes. With `continue`, the pair spawned for the attempt's first phase takes every later phase too, and the Arbiter sends it each phase's turns by its handles. Why `fresh` is the default: a session kept into the next phase re-reads the context it carries on every call of that phase, and in the measured runs that cost more than a new session reading the plan and one phase file. `continue` is an experiment for specs with small phases, where it may cost less. `design-notes.md` has the arithmetic and the results so far.
@@ -91,19 +97,26 @@ Coder implements the phase under the engine's Code turns: commit, build green, e
 The stage closes when the last phase closes.
 
 ### Reopening
-Not a stage: the way out of `plan` or `implementation` when the approved approach turns out not to work. What the new attempt needs most is the previous plan and why it failed, so both are carried forward on disk, never through a message.
+Not a stage: the way out of `plan` or `implementation` when the approved approach turns out not to work, and out of `pre-plan` when the User restarts the attempt. What the new attempt needs most is the previous plan and why it failed, so both are carried forward on disk, never through a message.
+
+**Not every broken decision needs a reopen.** When the author and the reviewer agree that `plan.md` or a phase file must change and the change keeps the approach, it is an amendment: the author asks the User (engine: User questions), and the approved file stays as it is. A reopen is for an approach that cannot work.
 
 1. **Evidence.** The role that hits it, whichever it is, writes `reopen.md` at the spec root and replies BLOCKED, naming it in the reply's sentence. The file holds the RESULT, the `plan.md` lines of every decision the RESULT breaks, and the state it was found in. A Coder leaves the tree at its last green commit. A BLOCKED with no `reopen.md` is an ordinary BLOCKED.
-2. **Ruling.** The User reopens, abandons the spec (engine: abandoned), or rules the problem local and names who fixes it. Not every broken task breaks the approach.
+   - **From pre-plan** there is no `plan.md` to break. The User may restart the attempt in any pre-plan state, e.g. when a ruling changes the brief under the drafts, or when the pair is anchored on a frame the User has given up. The Arbiter then writes `reopen.md` itself: the ruling in the User's words, the state, and the earlier drafts' assumptions that the ruling removes.
+2. **Ruling.** The User reopens, abandons the spec (engine: abandoned), or rules the problem local and names who fixes it. Not every broken task breaks the approach. On a local ruling, the Arbiter moves the text of `reopen.md` into the ruling's **Evidence:** in `99-user.md` and deletes the file. Why: a `reopen.md` at the root says a reopen is pending.
 3. **The move.** On a reopen, the Arbiter moves `pre-plan/`, `plan/`, `review/` and `reopen.md` into the next `attempts/NN/`, sets the Handle cells of the Architect, the Architecture Reviewer, the Coder and the Code Reviewer in `roster.md` back to `-`, commits `fondue/specs/<spec>/` and sets `brief`. `roster.md`, `99-user.md`, `stats.md` and `landed.md` stay at the root: they span attempts.
 4. **The brief.** The User writes a new `pre-plan/00-brief.md`. It may start from the previous one, and it says whether the goal has changed.
 5. **The new pair.** A fresh Architect and a fresh Architecture Reviewer, and later a fresh Coder and Code Reviewer for the new attempt's first phase, whatever **Sessions:** says. Why: the pair that designed and approved the failed frame is the pair most anchored to it, and a Coder or Code Reviewer kept from the failed attempt carries that frame in its context.
-6. **What they read.** Every attempt's `plan/plan.md` and `reopen.md`: what was planned, and why it failed. The Architect also reads `landed.md`, for the Landed work section. The research files of earlier attempts are a source: a FACT carried forward is restated in the new research with its origin, and a RESULT about the mechanism that failed is re-run. Drafts, reviews and phase files of earlier attempts are never read. Why: they argue for the frame that failed, while `plan.md` states it and `reopen.md` states what broke it.
+6. **What they read.** Every attempt's `plan/plan.md`, if it has one, and its `reopen.md`: what was planned, and why it failed. The Architect also reads `landed.md`, for the Landed work section. The research files of earlier attempts are a source: a FACT carried forward is restated in the new research with its origin, and a RESULT about the mechanism that failed is re-run. Drafts, reviews and phase files of earlier attempts are never read. Why: they argue for the frame that failed, while `plan.md` states it and `reopen.md` states what broke it.
 
 The new attempt then runs from `brief` like the first, with its phases numbered from `01` again. Its draft carries two more sections (see `pre-plan/NN-draft.md`).
 
 ### handover
-User decides whether any further document is needed, e.g. a project-level skill. For each one, the User names the model and effort that write it. The Arbiter writes the User's request into the next `handover/NN-request.md`, and spawns a Handover Writer with that model and effort (engine: Starting a role). The stage closes when the User tells the Arbiter to close it, and the spec goes to the engine's `done`.
+User decides whether any further document is needed, e.g. a project-level skill. The Arbiter writes the User's request into the next `handover/NN-request.md`, and then:
+* **by default it writes the documents itself.** Every review has closed by then, so its neutrality is no longer at stake (engine: Roles). And it is the one session that followed the whole spec: every ruling, every reopen, every scope change.
+* **when the User names a model and effort,** it spawns a Handover Writer with them (engine: Starting a role) and sends it the request.
+
+The documents are committed in their own commits, never with `fondue/`. The stage closes when the User tells the Arbiter to close it. The Arbiter then takes the spec to the engine's `done` and carries out what the User asks for the branch, e.g. push, merge and push the main branch. A remote write is the User's to delegate, one action at a time.
 
 ## State
 `current-state.txt` is `<stage>[:<NN>][:<Step>]`. `NN` appears in `implementation` only. `Step` appears in `pre-plan`, `plan` and `implementation` only. Examples: `brief`, `pre-plan:Review`, `plan:Answer`, `implementation:03:Draft`, `done`, `abandoned`.
@@ -120,6 +133,7 @@ The engine's rows hold. This skill adds:
 | `implementation:NN:Review` / `implementation:NN:Answer` | DONE, `approved` / `closed` | `implementation:<NN+1>:Draft`; after the last phase, `handover` |
 | `handover` | DONE | `handover` (User asks for another document, or closes the stage: `done`) |
 | `plan:<Step>`, `implementation:NN:<Step>` | BLOCKED with `reopen.md`, User rules to reopen | `brief` (see Reopening) |
+| `pre-plan:<Step>` | User rules to restart the attempt | `brief` (see Reopening) |
 
 The last phase is the highest `NN` in `plan/`. Listing that folder is the one listing the Arbiter needs.
 
@@ -146,11 +160,11 @@ R = reads, W = writes (and reads). A role reads nothing in the spec that this ta
 | `review/pre-plan/`, `review/plan/` | | W request, answers | W reviews | | |
 | `review/phase-NN/` | | | | W request, answers | W reviews |
 | `handover/NN-request.md` | W | | | | |
-| `reopen.md` | moves | W | W | W | W |
+| `reopen.md` | moves; writes on a restart from pre-plan | W | W | W | W |
 | `attempts/NN/plan/plan.md`, `attempts/NN/reopen.md` | moves | R | R | | |
 | `attempts/NN/pre-plan/*research.md`, `attempts/NN/plan/research.md` | | R, as a source | R, as a source | | |
 
-The Handover Writer reads its request and what the request names. The User reads and may write anything, including `99-user.md` directly.
+In handover the Arbiter reads whatever the request needs. A Handover Writer reads its request and what the request names. The User reads and may write anything, including `99-user.md` directly.
 
 ## Artifacts
 
@@ -216,7 +230,7 @@ A phase document may list skills for its phase on top of those in `roster.md`.
 As the engine says. The subject of `pre-plan` is a draft file, of `plan` a list of phase files, of `phase-NN` a commit range. `phase-NN` is a code topic: its request and answers carry `Build:` and `Gates:`.
 
 ### handover/NN-request.md
-Written by the Arbiter in the User's own words: what to write, what it is for, and where the finished document belongs, usually in the project and not in the spec folder. The Handover Writer is sent nothing else.
+Written by the Arbiter in the User's own words: what to write, what it is for, and where the finished document belongs, usually in the project and not in the spec folder. A Handover Writer is sent nothing else.
 
 ## Roles
 The engine's User and Arbiter, and:
@@ -225,7 +239,7 @@ The engine's User and Arbiter, and:
 * **Coder** - implements the phases. Lives for one phase, or with **Sessions:** `continue` for every phase of one attempt.
 * **Code Reviewer** - reviews the phases. Lives as long as the Coder.
 
-The User also decides the handover.
+The User also decides the handover, and the Arbiter writes it unless the User names a Handover Writer.
 
 ## Turns
 The engine's A turn, with this table:
@@ -241,7 +255,7 @@ The engine's A turn, with this table:
 | `implementation:NN:Draft` | Coder (new for phase NN) | `plan/` | implement `phase-NN.md`, commit, build green, open `review/phase-NN/` |
 | `implementation:NN:Review` | Code Reviewer (new for phase NN) | `review/phase-NN/` | review the commit range the newest file names; never run the build or the test suite |
 | `implementation:NN:Answer` | Coder | `review/phase-NN/` | fix what was accepted, commit, build green, answer |
-| `handover` | Handover Writer | `handover/` | write what the newest request asks, where it says |
+| `handover` | Arbiter, or the Handover Writer the User names | `handover/` | write what the newest request asks, where it says |
 
 Reply keywords for turns with no verdict, beyond the engine's `request opened`: `light: phases split` and `handover written`.
 
