@@ -37,7 +37,7 @@ fondue/<kind>/
     stats.md
     review/
       <topic>/   00-request.md, 01-review.md, 02-answer.md, ...
-    question.md                                 (only while a question from a Draft turn is pending)
+    question.md                                 (only while a question outside any finding is pending)
     advice/      01-<agent>-<model>-<effort>.md, ...   (only once an advisor was asked)
     ...          what the process skill adds
   archive/
@@ -213,7 +213,7 @@ The verdict line is one of:
 * `Verdict: next-round <subject>` - the reviewer has something new to judge. The subject is the new file, the files touched, or the commit range carrying the fixes, i.e. `git diff <from>..<to>`. Why: without it the reviewer re-reviews work already approved.
 * `Verdict: closed <subject>` - only after `approved-with-fixes` when every listed fix was applied as proposed. The subject is the final file, the files, or the topic's full commit range.
 * `Verdict: deadlocked <thread>[ | question <refs>]` - see Escalation. The questions are listed when the same answer also asks the User (User questions).
-* `Verdict: question <file>#<id>[, <file>#<id> ...]` - see User questions.
+* `Verdict: question <refs>` - see User questions.
 
 ### Findings
 Every finding has an id (its number in the file), a title, a severity, a description and a proposed solution.
@@ -325,7 +325,7 @@ BLOCKED <state> | <what is missing or failing, one sentence>
 * `<counts>` for a reviewer: `<n> Blocker, <n> Nit`. For an author's answer: `<n> accepted, <n> challenged, <n> declined`. For a turn with no verdict: `-`. It is a count, not a summary.
 * **DONE** - the artifact is on disk. The Arbiter advances the state and sends the next turn.
 * **CONFLICT** - a finding deadlocked (Escalation). The answer to every other finding is on disk before the reply.
-* **QUESTION** - a decision that is the User's (User questions). `<refs>` are the `<file>#<id>` of the findings the answer asks about, as its verdict lists them, or `question.md`. The question, and everything the turn could do without it, is on disk before the reply.
+* **QUESTION** - a decision that is the User's (User questions). `<refs>` is a comma-separated list of every pending question: the `<file>#<id>` of each finding the answer asks about, and `question.md` if the turn wrote one. The question, and everything the turn could do without it, is on disk before the reply.
 * **BLOCKED** - the turn cannot be completed: an artifact lacks something, the build will not go green, the state does not match the disk, a command is not permitted. A role never guesses past a blocker. The reply is still the one line: no report, no file list.
 
 **In a subagent harness the reply line is the whole hand-back.** The harness asks a subagent for "your full report". Ignore that: the artifact on disk is the report. Why: a report duplicates the artifact into the Arbiter's context and tempts it to read work that is not its business. An advisor is the exception: its final message is its output (Advisors).
