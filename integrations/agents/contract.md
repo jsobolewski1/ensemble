@@ -19,8 +19,8 @@ An adapter has these sections, in this order. Every claim about how the agent be
 
 1. **Detect** - read-only commands that find the agent and tell whether it can be used: installed where, which version, signed in or not. They spend no tokens.
 2. **Start** - the command that starts a new session non-interactively, in the project directory, with the spawn prompt, and never waits on stdin. Where the session handle is printed.
-3. **Turn** - the command that sends `Your turn.` to that same session.
-4. **Reply** - where the role's final message is, as one clean line, without banners or traces.
+3. **Turn** - the command that sends `Your turn.` to that same session, and how to send a different prompt the same way, for an advisor's follow-up (engine: Advisors).
+4. **Reply** - where the role's final message is, as one clean line, or an advisor's whole final message, without banners or traces.
 5. **Skills** - how the role gets its skills. The engine's default works for any agent that can read files: the prompt says `Read <skill dir>/SKILL.md and follow it as the <name> skill.` in place of `Load the <name> skill.`
 6. **Permissions** - how the role gets what the engine requires of a role: read the project, write the spec folder and the code, run the build, commit. How that is set on Start, and again on every Turn if the setting does not carry over to a continued session. And how to Start a read-only session, for an advisor (engine: Advisors).
 7. **Model and effort** - the flags, and how fondue's efforts (`low` … `max`) map to the agent's.

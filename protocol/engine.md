@@ -38,7 +38,7 @@ fondue/<kind>/
     review/
       <topic>/   00-request.md, 01-review.md, 02-answer.md, ...
     question.md                                 (only while a question from a Draft turn is pending)
-    advice/      01-<advisor>.md, ...           (only once an advisor was asked)
+    advice/      01-<agent>-<model>-<effort>.md, ...   (only once an advisor was asked)
     ...          what the process skill adds
   archive/
     <spec>/
@@ -121,7 +121,7 @@ Every ruling, at any stage, in the User's own words. Appended and never rewritte
 Only **Ruling:** must be the User's own words. The Arbiter writes the two optional lines, and they say only what was done or what was retired, never why the User ruled.
 
 ### stats.md
-Owned by the Arbiter, one table row per finished turn, per advisor, and per piece of work the Arbiter does as a role (e.g. a handover it writes). No other role reads it.
+Owned by the Arbiter, one table row per finished turn, per advisor's answer, per research session it spawns for the User, and per piece of work it does after the last review (e.g. a handover it writes). No other role reads it.
 ```
 | Date | Role | Model | State | Result | Counts | Tokens | Time |
 |---|---|---|---|---|---|---|---|
@@ -129,7 +129,7 @@ Owned by the Arbiter, one table row per finished turn, per advisor, and per piec
 | 2026-09-30 | Coder | opus/high | implementation:01:Draft | BLOCKED: host firewall rule for port 8068 missing | - | out 16.6k · write 120k · read 5.43M · in 98 | 11m |
 | 2026-09-26 | Architecture Reviewer | codex gpt-5.6-sol/xhigh | pre-plan:Review | approved-with-fixes | 2 Blocker, 1 Nit | in 3.14M (2.97M cached) · out 22.7k | 8m |
 ```
-State, Result and Counts come from the reply line. Result is the verdict for DONE, and otherwise `CONFLICT: <file>#<id>`, `QUESTION: <ref>` or `BLOCKED: <the reply's sentence>`. An advisor gets a row too, with the Role `Advisor`, the State it was asked in and the Result `advice`. The written paths stay out: they are on disk and in git. A `|` inside a cell is written `\|`.
+State, Result and Counts come from the reply line. Result is the verdict for DONE, and otherwise `CONFLICT: <file>#<id>`, `QUESTION: <refs>` or `BLOCKED: <the reply's sentence>`. An advisor gets a row too, with the Role `Advisor`, the State it was asked in and the Result `advice`. The written paths stay out: they are on disk and in git. A `|` inside a cell is written `\|`.
 
 For a Claude role, the last two cells are the output of `turn-stats.py` next to this file, run from the project directory with the role's agent id (`--all` prints every turn). The transcript it reads is at `~/.claude/projects/<project>/<arbiter-session-id>/subagents/agent-<agent-id>.jsonl`, where `<project>` is the working directory with `/` replaced by `-`, e.g. `/home/x/project` -> `-home-x-project`. Run it after the task-notification that the agent finished, not on its reply: the reply lands before the transcript's last usage lines, and figures taken then are short.
 
@@ -189,7 +189,7 @@ A finding that re-asserts one from an earlier review of the topic carries `(re <
 The verdict line is one of:
 * `Verdict: approved <subject>` - no Blockers. Nits are not applied and no answer follows. A reviewer who wants a Nit applied lists it under `approved-with-fixes`.
 * `Verdict: approved-with-fixes <subject> | #2, #4` - see Approval with fixes.
-* `Verdict: changes-requested` - at least one Blocker the reviewer cannot approve unseen.
+* `Verdict: changes-requested` - at least one Blocker the reviewer cannot approve unseen, or a finding that holds a User question (User questions), whatever its severity.
 
 A process skill may add an outcome to a closing verdict, e.g. `Verdict: approved <subject> | exit`.
 
@@ -213,7 +213,7 @@ The verdict line is one of:
 * `Verdict: next-round <subject>` - the reviewer has something new to judge. The subject is the new file, the files touched, or the commit range carrying the fixes, i.e. `git diff <from>..<to>`. Why: without it the reviewer re-reviews work already approved.
 * `Verdict: closed <subject>` - only after `approved-with-fixes` when every listed fix was applied as proposed. The subject is the final file, the files, or the topic's full commit range.
 * `Verdict: deadlocked <thread>` - see Escalation.
-* `Verdict: question <file>#<id>` - see User questions.
+* `Verdict: question <file>#<id>[, <file>#<id> ...]` - see User questions.
 
 ### Findings
 Every finding has an id (its number in the file), a title, a severity, a description and a proposed solution.
@@ -224,7 +224,7 @@ Every finding has an id (its number in the file), a title, a severity, a descrip
 ### Approval with fixes
 When every Blocker has a concrete, local proposed solution and none changes the design, the reviewer approves with fixes, listing the finding ids the approval depends on. The author applies each listed fix exactly as proposed and answers `closed`. No further round follows: re-reviewing a fix applied verbatim only confirms what both sides already agreed.
 
-The approval is void as soon as the author challenges a listed finding, fixes it differently, or asks the User about it. The answer is then `next-round`, or `question` when the author asks, and `next-round` after the ruling. A reviewer who cannot state a fix precisely enough to approve it unseen answers `changes-requested`.
+The approval is void as soon as the author challenges a listed finding, fixes it differently, or asks the User about it. The answer is then `next-round`. When the author asks, it is `question`, and the answer after the ruling is `next-round`. A reviewer who cannot state a fix precisely enough to approve it unseen answers `changes-requested`.
 
 ### Escalation
 A deadlock is a disagreement about **whether the work is right**, and only one sequence makes it: the author challenged a finding, the reviewer re-asserted it with `(re <origin>)`, and the author still disagrees. The author then writes their position once more as `#<id> deadlocked: ...`, answers every other finding, ends with `Verdict: deadlocked <origin>` and replies CONFLICT. Neither side writes on that finding again.
@@ -242,22 +242,24 @@ A **new** finding on new evidence is never a deadlock, however late it arrives.
 ### User questions
 Some decisions are the User's whatever the evidence says: **what the spec delivers** (its goal, its scope, what counts as done), anything a ruling already settled, and **a change to an approved artifact** (the process skill names which artifacts carry an approval). A role that meets one neither decides it nor argues it across rounds. The question is asked the first time it appears, and it is always on disk:
 * **an author** who meets one in a finding, whether they would fix, challenge or decline it, answers every other finding, writes `#<id> question: <the decision, with its anchor>`, ends with `Verdict: question <file>#<id>` and replies QUESTION.
-* **a reviewer** never replies QUESTION. They write the finding as usual, say in it that the decision is the User's, and end with a normal verdict. The author then asks. Why: a review that stopped on a question would leave the author's next turn with no review to answer.
-* **a role in a turn with no verdict** (a Draft) writes nothing that the decision shapes. It writes the decision and its anchor into `question.md` at the spec root and replies QUESTION. A role that writes code leaves the tree at its last green commit.
+* **a reviewer** never replies QUESTION. They write the finding as usual, say in it that the decision is the User's, and end with `changes-requested` whatever its severity, so that an answer follows. The author then asks. Why: a review that stopped on a question would leave the author's next turn with no review to answer.
+* **a role in a turn with no verdict** (a Draft) writes nothing that the decision shapes. It writes the decision and its anchor into `question.md` at the spec root and replies QUESTION.
 
-**An agreed change is a question too.** When the author and the reviewer agree that an approved artifact must change, the author asks the User to approve it as an amendment, unless the process skill routes that change elsewhere (spec: an approach that cannot work reopens). The approved file is not edited, unless the process skill says otherwise for it: the ruling amends it, and every role reads the amendment in `99-user.md`. Why: an approved file carries its approval, so editing it would make it say something nobody approved. And reopening the work for a change both sides agree on throws away everything the change does not touch.
+A role that writes code ends a QUESTION turn at its last green commit. An answer may hold several questions; the verdict, the reply and the Arbiter's message list them all.
+
+**An agreed change is a question too.** When the author and the reviewer agree that an approved artifact must change, the author asks the User to approve it as an amendment, unless the process skill routes that change elsewhere (spec: an approach that cannot work reopens). The approved file is not edited, unless the process skill says otherwise for it: the ruling amends it, and every role reads the amendment in `99-user.md`. Why: an approved file carries its approval, so editing it would make it say something nobody approved. And redoing the work for a change both sides agree on throws away everything the change does not touch.
 
 The Arbiter sends the User exactly this, and the User reads the files:
 ```
-QUESTION in <state>: <ref from the reply>. Evidence in <paths from the reply>. Your ruling?
+QUESTION in <state>: <refs from the reply>. Evidence in <paths from the reply>. Your ruling?
 ```
-The Arbiter neither summarises nor rules. It records the ruling with `settles <file>#<id>`, or moves the text of `question.md` into the ruling's **Evidence:** and deletes the file. The same role then gets the next turn in the same state. An author writes a new answer that applies the ruling, as after a CONFLICT, with a normal verdict. A Draft turn resumes its work.
+The Arbiter neither summarises nor rules. It records one ruling per question with `settles <file>#<id>`, or moves the text of `question.md` into the ruling's **Evidence:** and deletes the file. Once every question has a ruling, the same role gets the next turn in the same state. An author writes a new answer that applies the ruling, as after a CONFLICT, with a normal verdict. A Draft turn resumes its work.
 
-When one answer holds both a deadlock and a question, the author replies CONFLICT and appends `| question <file>#<id>` to the line. The Arbiter puts both to the User.
+When one answer holds both a deadlock and a question, the author replies CONFLICT and appends `| question <refs>` to the line. The Arbiter puts both to the User.
 
 ### Advisors
 At a CONFLICT, at a QUESTION, or at any other time, the User may ask the Arbiter for advisors: second opinions from sessions outside the spec, on an agent, model and effort the User names. An advisor:
-* **is spawned like a role** (Starting a role): on Claude with `fondue:role-<effort>`, and on another agent through its adapter's Start, read-only. It gets no Handle cell and no turns.
+* **is spawned like a role** (Starting a role): on Claude with `fondue:role-<effort>`, and on another agent through its adapter's Start, read-only. It gets no Handle cell and no `Your turn.`. The Arbiter keeps its handle outside `roster.md`, for a follow-up.
 * **is read-only.** It writes nothing in the repository, changes no code and commits nothing. Its final message is its whole output.
 * **gets one fixed prompt, the same for every advisor on that question.** The prompt says that the session is an advisor and not a role: it loads no fondue skill, it is read-only, and its final message is its whole output. Then it names:
   - the thread, the question (`<file>#<id>` or `question.md`), or the User's own question;
@@ -266,7 +268,7 @@ At a CONFLICT, at a QUESTION, or at any other time, the User may ask the Arbiter
 
   It asks four things: which position is right and why, with anchors; whether it is a Blocker; the resolution the advisor would propose if neither side is right; and what both sides missed. The prompt never says which way the User leans. Why: an advisor that knows the User's lean tends to confirm it.
 
-The Arbiter saves each advisor's final message verbatim to `advice/NN-<agent>-<model>-<effort>.md`, e.g. `advice/02-claude-opus-xhigh.md`, numbered across the spec. It relays the advice to the User and adds the advisor's row to `stats.md`. At the User's request, the Arbiter gives an advisor another advisor's file by its path and asks it to respond. Its answer is saved the same way. Roles never read `advice/`: what the User takes from it reaches them through the ruling.
+The Arbiter saves each advisor's final message verbatim to `advice/NN-<agent>-<model>-<effort>.md`, e.g. `advice/02-claude-opus-xhigh.md`, numbered across the spec. It relays the advice to the User and adds the advisor's row to `stats.md`. At the User's request, the Arbiter sends an advisor a follow-up, read-only like its start: another advisor's file by its path, and a request to respond. Its answer is saved the same way. Roles never read `advice/`: what the User takes from it reaches them through the ruling.
 
 ## Roles every process has
 * **User** - owns the spec. Writes what the process starts from, picks the roster, rules on escalations, questions and blockers.
@@ -313,8 +315,8 @@ That is the whole message, and it always starts a new turn, however the harness 
 One line. When a turn has more than one kind to report, it sends the higher one: **CONFLICT outranks QUESTION outranks BLOCKED outranks DONE**.
 ```
 DONE <state> | wrote <paths> | <verdict> | <counts>
-CONFLICT <state> | wrote <paths> | thread <file>#<id> deadlocked | positions in <every review and answer file on the thread>
-QUESTION <state> | wrote <paths> | question <ref> | evidence in <paths>
+CONFLICT <state> | wrote <paths> | thread <file>#<id> deadlocked | positions in <every review and answer file on the thread>[ | question <refs>]
+QUESTION <state> | wrote <paths> | question <refs> | evidence in <paths>
 BLOCKED <state> | <what is missing or failing, one sentence>
 ```
 * `<paths>` are relative to the repository root, e.g. `fondue/specs/json-top/review/phase-01/00-request.md`.
@@ -323,7 +325,7 @@ BLOCKED <state> | <what is missing or failing, one sentence>
 * `<counts>` for a reviewer: `<n> Blocker, <n> Nit`. For an author's answer: `<n> accepted, <n> challenged, <n> declined`. For a turn with no verdict: `-`. It is a count, not a summary.
 * **DONE** - the artifact is on disk. The Arbiter advances the state and sends the next turn.
 * **CONFLICT** - a finding deadlocked (Escalation). The answer to every other finding is on disk before the reply.
-* **QUESTION** - a decision that is the User's (User questions). `<ref>` is the answer's `<file>#<id>`, or `question.md`. The question, and everything the turn could do without it, is on disk before the reply.
+* **QUESTION** - a decision that is the User's (User questions). `<refs>` are the findings' `<file>#<id>`, as the answer's verdict names them, or `question.md`. The question, and everything the turn could do without it, is on disk before the reply.
 * **BLOCKED** - the turn cannot be completed: an artifact lacks something, the build will not go green, the state does not match the disk, a command is not permitted. A role never guesses past a blocker. The reply is still the one line: no report, no file list.
 
 **In a subagent harness the reply line is the whole hand-back.** The harness asks a subagent for "your full report". Ignore that: the artifact on disk is the report. Why: a report duplicates the artifact into the Arbiter's context and tempts it to read work that is not its business. An advisor is the exception: its final message is its output (Advisors).

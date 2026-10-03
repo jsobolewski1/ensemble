@@ -61,8 +61,8 @@ fondue/bugs/
 The spec starts as the engine's Starting a spec says, with first state `report`.
 
 ### report
-The User writes `report.md`, the bug's starting document, alone or with AI help. The stage ends when the User signs it off. The
-Arbiter commits and sets `hunt:Draft`.
+The User writes `report.md`, the bug's starting document, alone or with AI help. The stage ends
+when the User signs it off. The Arbiter commits and sets `hunt:Draft`.
 
 ### hunt
 The Hunter reproduces the bug, localizes it, finds the root cause, writes `hunt/01-diagnosis.md` and

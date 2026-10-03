@@ -47,6 +47,7 @@ fondue/specs/
     handover/
       00-request.md, 01-request.md, ...
     reopen.md                  (only while a reopen is pending)
+    question.md                (engine: User questions)
     advice/                    (engine: Advisors)
     attempts/                  (only after a reopen)
       01/
@@ -63,7 +64,7 @@ User writes `pre-plan/00-brief.md`, the spec's starting document, alone or with 
 
 At sign-off the Arbiter checks one thing: **a light brief has no open question** except ones marked `(technical)`. That is a mechanical check, not a judgement: the Arbiter tells the User when it fails, and the User changes the mode or the brief. Why: an open question that shapes the approach means the design is not settled, and light mode gives the approach and the tasks a single review, which would then be spent settling the design.
 
-**Amending the brief.** A ruling may change a signed brief later: its goal, its scope or its mode. Unlike the engine's amendment of an approved artifact, the brief is edited, because it is the User's own document. The User edits it, or the Arbiter does in the User's words, and a line under the title says `Amended <date>: <what changed>; ruling in 99-user.md`. The User signs off the change, the Arbiter runs the light check again and commits it, and the role that asked gets its next turn and applies the amended brief. When the change takes the frame away from the drafts written so far, the User may restart the attempt instead (see Reopening).
+**Amending the brief.** A ruling may change a signed brief later: its goal, its scope or its mode. Unlike the engine's amendment of an approved artifact, the brief is edited, because it is the User's own document. The User edits it, or the Arbiter does in the User's words, and a line under the title says `Amended <date>: <what changed>; ruling in 99-user.md`. The User signs off the change, the Arbiter runs the light check again and commits it, and the role whose turn is next applies the amended brief. A change of mode after pre-plan has closed restarts the attempt (see Reopening): the approved draft was written for the other mode. When the change takes the frame away from the drafts written so far, the User may restart the attempt instead (see Reopening).
 
 ### pre-plan
 Pre-plan settles **how the goal is reached**: the approach, the decisions that shape it, and the phases with the gate each must pass. The technical decisions inside each phase belong to plan.
@@ -97,12 +98,12 @@ Coder implements the phase under the engine's Code turns: commit, build green, e
 The stage closes when the last phase closes.
 
 ### Reopening
-Not a stage: the way out of `plan` or `implementation` when the approved approach turns out not to work, and out of `pre-plan` when the User restarts the attempt. What the new attempt needs most is the previous plan and why it failed, so both are carried forward on disk, never through a message.
+Not a stage: the way out of `plan` or `implementation` when the approved approach turns out not to work, and out of pre-plan, plan or implementation when the User restarts the attempt. What the new attempt needs most is the previous plan and why it failed, so both are carried forward on disk, never through a message.
 
 **Not every broken decision needs a reopen.** When the author and the reviewer agree that `plan.md` or a phase file must change and the change keeps the approach, it is an amendment: the author asks the User (engine: User questions), and the approved file stays as it is. A reopen is for an approach that cannot work.
 
 1. **Evidence.** The role that hits it, whichever it is, writes `reopen.md` at the spec root and replies BLOCKED, naming it in the reply's sentence. The file holds the RESULT, the `plan.md` lines of every decision the RESULT breaks, and the state it was found in. A Coder leaves the tree at its last green commit. A BLOCKED with no `reopen.md` is an ordinary BLOCKED.
-   - **From pre-plan** there is no `plan.md` to break. The User may restart the attempt in any pre-plan state, e.g. when a ruling changes the brief under the drafts, or when the pair is anchored on a frame the User has given up. The Arbiter then writes `reopen.md` itself, in the User's words only: the ruling, the state, and the assumptions the User says the ruling removes.
+   - **On the User's own ruling**, with no RESULT, the User may restart the attempt in any state of pre-plan, plan or implementation, e.g. when a ruling changes the brief under the drafts, when the mode changes after pre-plan, or when the pair is anchored on a frame the User has given up. The Arbiter then writes `reopen.md` itself, in the User's words only: the ruling, the state, and the assumptions the User says the ruling removes.
 2. **Ruling.** The User reopens, abandons the spec (engine: abandoned), or rules the problem local and names who fixes it. Not every broken task breaks the approach. On a local ruling, the Arbiter moves the text of `reopen.md` into the ruling's **Evidence:** in `99-user.md` and deletes the file. Why: a `reopen.md` at the root says a reopen is pending.
 3. **The move.** On a reopen, the Arbiter moves `pre-plan/`, `plan/`, `review/` and `reopen.md` into the next `attempts/NN/`, sets the Handle cells of the Architect, the Architecture Reviewer, the Coder and the Code Reviewer in `roster.md` back to `-`, commits `fondue/specs/<spec>/` and sets `brief`. `roster.md`, `99-user.md`, `stats.md` and `landed.md` stay at the root: they span attempts.
 4. **The brief.** The User writes a new `pre-plan/00-brief.md`. It may start from the previous one, and it says whether the goal has changed.
@@ -116,7 +117,7 @@ User decides whether any further document is needed, e.g. a project-level skill.
 * **by default it writes the documents itself.** Every review has closed by then, so its neutrality is no longer at stake (engine: Roles every process has). And it is the one session that followed the whole spec: every ruling, every reopen, every scope change.
 * **when the User names a model and effort,** it spawns a Handover Writer with them (engine: Starting a role) and sends it the request.
 
-Whoever writes a document commits it on its own, never with `fondue/`. When the Arbiter writes it there is no turn and no reply: it adds a `stats.md` row with the Role `Arbiter`, the Result `handover written` and `- | -`, and the state stays `handover`. The stage closes when the User tells the Arbiter to close it. The Arbiter then takes the spec to the engine's `done`, and does any git work the User asks for, e.g. a merge or a push. It makes no remote write the User has not asked for.
+Whoever writes a document commits it on its own, never with `fondue/`. When the Arbiter writes it there is no turn and no reply: it adds a `stats.md` row with the Role `Arbiter`, the Result `handover written`, and `-` for Counts, Tokens and Time, and the state stays `handover`. On entering handover the Arbiter sends no turn: it waits for the User's request. The stage closes when the User tells the Arbiter to close it. The Arbiter then takes the spec to the engine's `done`, and does any git work the User asks for, e.g. a merge or a push. It makes no remote write the User has not asked for.
 
 ## State
 `current-state.txt` is `<stage>[:<NN>][:<Step>]`. `NN` appears in `implementation` only. `Step` appears in `pre-plan`, `plan` and `implementation` only. Examples: `brief`, `pre-plan:Review`, `plan:Answer`, `implementation:03:Draft`, `done`, `abandoned`.
@@ -133,7 +134,7 @@ The engine's rows hold. This skill adds:
 | `implementation:NN:Review` / `implementation:NN:Answer` | DONE, `approved` / `closed` | `implementation:<NN+1>:Draft`; after the last phase, `handover` |
 | `handover` | DONE | `handover` (User asks for another document, or closes the stage: `done`) |
 | `plan:<Step>`, `implementation:NN:<Step>` | BLOCKED with `reopen.md`, User rules to reopen | `brief` (see Reopening) |
-| `pre-plan:<Step>` | User rules to restart the attempt | `brief` (see Reopening) |
+| `pre-plan:<Step>`, `plan:<Step>`, `implementation:NN:<Step>` | User rules to restart the attempt | `brief` (see Reopening) |
 
 The last phase is the highest `NN` in `plan/`. Listing that folder is the one listing the Arbiter needs.
 
@@ -160,7 +161,7 @@ R = reads, W = writes (and reads). A role reads nothing in the spec that this ta
 | `review/pre-plan/`, `review/plan/` | | W request, answers | W reviews | | |
 | `review/phase-NN/` | | | | W request, answers | W reviews |
 | `handover/NN-request.md` | W | | | | |
-| `reopen.md` | moves; writes on a restart from pre-plan | W | W | W | W |
+| `reopen.md` | moves; writes on a restart the User rules | W | W | W | W |
 | `question.md` | moves into a ruling | W | | W | |
 | `advice/` | W | | | | |
 | `attempts/NN/plan/plan.md`, `attempts/NN/reopen.md` | moves | R | R | | |
@@ -210,7 +211,7 @@ The high-level delivery plan, owned by the Architect, numbered from `03` up. It 
 What goes in the draft is decided by one test: **would getting this wrong change the approach, the phase split or a gate?** If so, it belongs in the draft. If not, it is a technical decision and belongs to plan: a config value, a label name, a class, an API call, a task list. Why: every technical decision a draft carries can be wrong and costs a whole new draft to fix. It also crowds the review, so findings about the frame arrive rounds late.
 
 A draft in a reopened spec carries two more sections:
-* **Earlier attempts** - for each one: its approach in a few lines (for an attempt restarted from pre-plan, what its `reopen.md` names), the assumption its `reopen.md` shows broken, and why this approach does not rest on that assumption.
+* **Earlier attempts** - for each one: its approach in a few lines (for an attempt with no `plan.md`, what its `reopen.md` names), the assumption its `reopen.md` shows broken, and why this approach does not rest on that assumption.
 * **Landed work** - every commit the spec has landed so far, by phase and attempt, including a phase that never closed: keep, amend or revert, each with its reason. An amend or a revert is a phase of this plan like any other. The phase boundaries are in `landed.md`: a phase's commits are those after the line before it, up to its own sha. The commits after the last line belong to the phase that never closed.
 
 ### plan/research.md
@@ -257,7 +258,7 @@ The engine's A turn, with this table:
 | `implementation:NN:Draft` | Coder (new for phase NN) | `plan/` | implement `phase-NN.md`, commit, build green, open `review/phase-NN/` |
 | `implementation:NN:Review` | Code Reviewer (new for phase NN) | `review/phase-NN/` | review the commit range the newest file names; never run the build or the test suite |
 | `implementation:NN:Answer` | Coder | `review/phase-NN/` | fix what was accepted, commit, build green, answer |
-| `handover` | Arbiter, or the Handover Writer the User names | `handover/` | write what the newest request asks, where it says |
+| `handover` | the Handover Writer the User names; otherwise the Arbiter writes it, with no turn (see handover) | `handover/` | write what the newest request asks, where it says |
 
 Reply keywords for turns with no verdict, beyond the engine's `request opened`: `light: phases split` and `handover written`.
 
